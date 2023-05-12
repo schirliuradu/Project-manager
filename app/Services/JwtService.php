@@ -2,24 +2,37 @@
 
 namespace App\Services;
 
-use App\Factories\JwtConfigurationFactory;
 use DateTimeInterface;
+use Exception;
 use Lcobucci\JWT\Builder;
-use Lcobucci\JWT\JwtFacade;
+use Lcobucci\JWT\Parser;
+use Lcobucci\JWT\Signer;
+use Lcobucci\JWT\Signer\Key;
+use Lcobucci\JWT\UnencryptedToken;
+use Lcobucci\JWT\Validation\Constraint\IssuedBy;
+use Lcobucci\JWT\Validation\Constraint\SignedWith;
+use Lcobucci\JWT\Validation\RequiredConstraintsViolated;
+use Lcobucci\JWT\Validator;
 
 class JwtService
 {
     /**
      * JwtService class constructor.
      *
-     * @param JwtFacade $jwtFacade
-     * @param JwtConfigurationFactory $jwtConfigurationFactory
+     * @param Signer $algorithm
+     * @param Key $signingKey
+     * @param Builder $builder
+     * @param Parser $parser
      * @param DateTimeInterface $dateTime
+     * @param Validator $validator
      */
     public function __construct(
-        private readonly JwtFacade $jwtFacade,
-        private readonly JwtConfigurationFactory $jwtConfigurationFactory,
-        private readonly DateTimeInterface $dateTime
+        private readonly Signer            $algorithm,
+        private readonly Signer\Key        $signingKey,
+        private readonly Builder           $builder,
+        private readonly Parser            $parser,
+        private readonly DateTimeInterface $dateTime,
+        private readonly Validator         $validator
     ) {
     }
 
@@ -33,9 +46,25 @@ class JwtService
     public function generateTokens(int $userId): array
     {
         return [
-            $this->generateAccessToken($userId),
-            $this->generateRefreshToken($userId),
+            $this->generateAccessToken($userId)->toString(),
+            $this->generateRefreshToken($userId)->toString(),
         ];
+    }
+
+    /**
+     * Method which parses and validates given token returning boolean result.
+     *
+     * @param string $bearer
+     * @throws RequiredConstraintsViolated|Exception
+     */
+    public function parseAndValidateToken(string $bearer): void
+    {
+        $token = $this->parser->parse($bearer);
+
+        $this->validator->assert($token,
+            new IssuedBy(env('APP_URL')),
+            new SignedWith($this->algorithm, $this->signingKey)
+        );
     }
 
     /**
@@ -43,9 +72,9 @@ class JwtService
      *
      * @param int $userId
      *
-     * @return string
+     * @return UnencryptedToken
      */
-    protected function generateAccessToken(int $userId): string
+    private function generateAccessToken(int $userId): UnencryptedToken
     {
         return $this->generateToken($userId, $this->dateTime->modify('+1 hour'));
     }
@@ -55,9 +84,9 @@ class JwtService
      *
      * @param int $userId
      *
-     * @return string
+     * @return UnencryptedToken
      */
-    protected function generateRefreshToken(int $userId): string
+    private function generateRefreshToken(int $userId): UnencryptedToken
     {
         return $this->generateToken($userId, $this->dateTime->modify('+7 days'));
     }
@@ -68,23 +97,16 @@ class JwtService
      * @param int $userId
      * @param DateTimeInterface $expiresAt
      *
-     * @return string
+     * @return UnencryptedToken
      */
-    private function generateToken(int $userId, DateTimeInterface $expiresAt): string
+    private function generateToken(int $userId, DateTimeInterface $expiresAt): UnencryptedToken
     {
-        $jwtConfig = $this->jwtConfigurationFactory->create();
-
-        return $this->jwtFacade->issue(
-            $jwtConfig->signer(),
-            $jwtConfig->signingKey(),
-            function (Builder $builder) use ($userId, $expiresAt) {
-                return $builder
-                    ->issuedBy(env('APP_URL'))
-                    ->permittedFor(env('APP_URL'))
-                    ->issuedAt($this->dateTime)
-                    ->expiresAt($expiresAt)
-                    ->withClaim('userId', $userId);
-            }
-        )->toString();
+        return $this->builder
+            ->issuedBy(env('APP_URL'))
+            ->permittedFor(env('APP_URL'))
+            ->issuedAt($this->dateTime)
+            ->expiresAt($expiresAt)
+            ->withClaim('userId', $userId)
+            ->getToken($this->algorithm, $this->signingKey);
     }
 }

@@ -3,6 +3,15 @@
 namespace Tests\Unit\Services;
 
 use App\Services\JwtService;
+use DateTimeImmutable;
+use Lcobucci\JWT\Builder;
+use Lcobucci\JWT\Encoding\CannotDecodeContent;
+use Lcobucci\JWT\Parser;
+use Lcobucci\JWT\Signer;
+use Lcobucci\JWT\Token;
+use Lcobucci\JWT\UnencryptedToken;
+use Lcobucci\JWT\Validation\RequiredConstraintsViolated;
+use Lcobucci\JWT\Validator;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -10,6 +19,36 @@ use PHPUnit\Framework\TestCase;
  */
 class JwtServiceTest extends TestCase
 {
+    private JwtService $service;
+
+    private Signer $algorithmMock;
+    private Signer\Key $signingKeyMock;
+    private Builder $builderMock;
+    private Parser $parserMock;
+    private DateTimeImmutable $datetimeMock;
+    private Validator $validatorMock;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->algorithmMock = \Mockery::mock(Signer::class);
+        $this->signingKeyMock = \Mockery::mock(Signer\Key::class);
+        $this->builderMock = \Mockery::mock(Builder::class);
+        $this->parserMock = \Mockery::mock(Parser::class);
+        $this->datetimeMock = \Mockery::mock(DateTimeImmutable::class);
+        $this->validatorMock = \Mockery::mock(Validator::class);
+
+        $this->service = new JwtService(
+            $this->algorithmMock,
+            $this->signingKeyMock,
+            $this->builderMock,
+            $this->parserMock,
+            $this->datetimeMock,
+            $this->validatorMock
+        );
+    }
+
 
     /**
      * @test
@@ -18,26 +57,78 @@ class JwtServiceTest extends TestCase
     public function should_return_both_access_and_refresh_tokens_as_strings(): void
     {
         $userId = 1111;
-        $fakeAccessToken = 'hooray-access-token';
-        $fakeRefreshToken = 'hooray-refresh-token';
 
-        $service = \Mockery::mock(JwtService::class)
-            ->makePartial()
-            ->shouldAllowMockingProtectedMethods();
+        $fakeAccessToken = \Mockery::mock(UnencryptedToken::class);
+        $fakeAccessToken->shouldReceive('toString')->andReturn('hooray-access-token');
 
-        $service->shouldReceive('generateAccessToken')
-            ->once()
-            ->with($userId)
-            ->andReturn($fakeAccessToken);
+        $fakeRefreshToken = \Mockery::mock(UnencryptedToken::class);
+        $fakeRefreshToken->shouldReceive('toString')->andReturn('hooray-refresh-token');
 
-        $service->shouldReceive('generateRefreshToken')
-            ->once()
-            ->with($userId)
-            ->andReturn($fakeRefreshToken);
+        $this->datetimeMock->shouldReceive('modify')->twice();
 
-        $tokens = $service->generateTokens($userId);
+        $this->builderMock->shouldReceive('issuedBy')->twice()->andReturnSelf();
+        $this->builderMock->shouldReceive('permittedFor')->twice()->andReturnSelf();
+        $this->builderMock->shouldReceive('issuedAt')->twice()->andReturnSelf();
+        $this->builderMock->shouldReceive('expiresAt')->twice()->andReturnSelf();
+        $this->builderMock->shouldReceive('withClaim')->twice()->andReturnSelf();
+        $this->builderMock->shouldReceive('getToken')
+            ->twice()
+            ->with($this->algorithmMock, $this->signingKeyMock)
+            ->andReturns($fakeAccessToken, $fakeRefreshToken);
+
+        $tokens = $this->service->generateTokens($userId);
 
         $this->assertCount(2, $tokens);
-        $this->assertEquals([$fakeAccessToken, $fakeRefreshToken], $tokens);
+        $this->assertIsString($tokens[0]);
+        $this->assertIsString($tokens[1]);
+    }
+
+    /**
+     * @test
+     * @covers ::parseAndValidateToken
+     */
+    public function should_handle_bearer_parsing_errors_and_bubble_them_up(): void
+    {
+        $this->parserMock->shouldReceive('parse')
+            ->once()
+            ->andThrow(new CannotDecodeContent());
+
+        $this->expectException(CannotDecodeContent::class);
+        $this->service->parseAndValidateToken('test.bearer.token');
+    }
+
+    /**
+     * @test
+     * @covers ::parseAndValidateToken
+     */
+    public function should_handle_validation_errors_and_bubble_them_up(): void
+    {
+        $this->parserMock->shouldReceive('parse')
+            ->once()
+            ->andReturn(\Mockery::mock(Token::class));
+
+        $this->validatorMock->shouldReceive('assert')
+            ->once()
+            ->andThrow(new RequiredConstraintsViolated());
+
+        $this->expectException(RequiredConstraintsViolated::class);
+        $this->service->parseAndValidateToken('test.bearer.token');
+    }
+
+    /**
+     * @test
+     * @covers ::parseAndValidateToken
+     */
+    public function should_follow_correctly_validation_flow_if_there_are_no_violated_constraints_and_bearer_is_valid(): void
+    {
+        $this->parserMock->shouldReceive('parse')
+            ->once()
+            ->andReturn(\Mockery::mock(Token::class));
+
+        $this->validatorMock->shouldReceive('assert')->once();
+
+        // count expectations as assertions instead of this @todo - search for mockery settings 
+        $this->expectNotToPerformAssertions();
+        $this->service->parseAndValidateToken('test.bearer.token');
     }
 }

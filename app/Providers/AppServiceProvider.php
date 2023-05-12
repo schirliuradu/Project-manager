@@ -2,9 +2,6 @@
 
 namespace App\Providers;
 
-use App\Services\JwtService;
-use DateTimeImmutable;
-use DateTimeInterface;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -14,12 +11,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // resolver for datetime interface
-        $this->app->when(JwtService::class)
-            ->needs(DateTimeInterface::class)
-            ->give(function () {
-                return new DateTimeImmutable();
-            });
+        //
     }
 
     /**
