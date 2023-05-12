@@ -64,6 +64,7 @@ class JwtService
         $this->validator->assert($token,
             new IssuedBy(env('APP_URL')),
             new SignedWith($this->algorithm, $this->signingKey)
+            // we can add and check all stuff we desire here ...
         );
     }
 

@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 
 class UserNotFoundException extends Exception
 {
-
     /**
      * Render the exception into an HTTP response.
      */

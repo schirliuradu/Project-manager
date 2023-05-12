@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Exceptions\RequestWithoutBearerException;
+use App\Exceptions\UnauthorizedUserException;
 use App\Services\JwtService;
 use Closure;
 use Exception;
@@ -25,16 +27,21 @@ class JwtApiMiddleware
      * @param Closure $next
      *
      * @return Response
+     * @throws UnauthorizedUserException
+     * @throws RequestWithoutBearerException
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (!$bearer = $request->bearerToken()) {
+            throw new RequestWithoutBearerException();
+        }
+
         try {
-            $this->jwtService->parseAndValidateToken($request->bearerToken());
+            $this->jwtService->parseAndValidateToken($bearer);
             return $next($request);
 
         } catch (Exception|RequiredConstraintsViolated $e) {
-            // @todo better erro handling with custom exceptions
-            return response()->json(['error' => 'Unauthorized'], 401);
+            throw new UnauthorizedUserException();
         }
     }
 }
