@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AddProjectRequest;
 use App\Http\Requests\GetProjectRequest;
 use App\Http\Requests\GetProjectsRequest;
+use App\Http\Requests\UpdateProjectRequest;
 use App\Repositories\ProjectRepository;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Str;
 
 class ProjectController extends Controller
 {
@@ -55,6 +57,20 @@ class ProjectController extends Controller
     {
         return response()->json([
             'data' => $this->repo->addProject($request)
+        ]);
+    }
+
+    /**
+     * @param UpdateProjectRequest $request
+     * @param string $project
+     *
+     * @return JsonResponse
+     */
+    public function updateProject(UpdateProjectRequest $request, string $project): JsonResponse
+    {
+//        dd(Str::uuid());
+        return response()->json([
+            'data' => $this->repo->updateProject($request, $project)
         ]);
     }
 }

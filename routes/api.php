@@ -24,4 +24,5 @@ Route::group([
     Route::get('/projects', [ProjectController::class, 'getProjects']);
     Route::get('/projects/{project}', [ProjectController::class, 'getProject']);
     Route::post('/projects', [ProjectController::class, 'addProject']);
+    Route::patch('/projects/{project}', [ProjectController::class, 'updateProject']);
 });

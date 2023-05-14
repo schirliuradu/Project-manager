@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Enums\Status;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +27,13 @@ class Project extends Model
      */
     protected $keyType = 'string';
 
+    /**
+     * @var string[]
+     */
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+    ];
 
     /**
      * Get the tasks for the project.
@@ -35,5 +43,25 @@ class Project extends Model
     public function tasks(): HasMany
     {
         return $this->hasMany(Task::class);
+    }
+
+    /**
+     * @return HasMany
+     */
+    public function completedTasks(): HasMany
+    {
+        return $this->tasks()->where('status', '=', Status::CLOSED->value);
+    }
+
+    /**
+     * @return array
+     */
+    public function toArray(): array
+    {
+        return [
+            ...parent::toArray(),
+            'tasks_count' => $this->tasks()->count(),
+            'completed_tasks_count' => $this->completedTasks()->count(),
+        ];
     }
 }

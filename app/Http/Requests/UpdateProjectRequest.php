@@ -8,7 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 
-class GetProjectRequest extends FormRequest
+class UpdateProjectRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -26,7 +26,9 @@ class GetProjectRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'project' => 'required|uuid'
+            'project' => 'required|uuid',
+            'title' => 'required|string|max:255',
+            'description' => 'required|string'
         ];
     }
 

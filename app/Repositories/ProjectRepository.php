@@ -2,14 +2,15 @@
 
 namespace App\Repositories;
 
+use App\Exceptions\ProjectNotFoundException;
 use App\Helpers\Formatters\PaginationFormatter;
 use App\Http\Requests\AddProjectRequest;
 use App\Http\Requests\GetProjectsRequest;
+use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Enums\SortingValues;
 use App\Models\Enums\Status;
 use App\Models\Project;
 use Database\Factories\ProjectFactory;
-use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class ProjectRepository
@@ -38,17 +39,37 @@ class ProjectRepository
      */
     public function find(string $id): array
     {
-        $query = $this->project->query();
+        return $this->project
+            ->query()
+            ->where('id', '=', $id)
+            ->first()
+            ->toArray();
+    }
 
-        $query->where('id', '=', $id);
-        $query->withCount([
-            'tasks',
-            'tasks as completed_tasks_count' => function ($query) {
-                $query->where('status', '=', Status::CLOSED->value);
-            }
-        ]);
+    /**
+     * @param UpdateProjectRequest $request
+     * @param string $id
+     *
+     * @return array
+     * @throws ProjectNotFoundException
+     */
+    public function updateProject(UpdateProjectRequest $request, string $id): array
+    {
+        $project = $this->project
+            ->query()
+            ->where('id', '=', $id)
+            ->first();
 
-        return $query->get()->toArray();
+        if (!$project) {
+            throw new ProjectNotFoundException();
+        }
+
+        $project->title = $request->input('title');
+        $project->description = $request->input('description');
+
+        $project->save();
+
+        return $project->toArray();
     }
 
     /**
@@ -94,13 +115,6 @@ class ProjectRepository
             }
         }
 
-        $query->withCount([
-            'tasks',
-            'tasks as completed_tasks_count' => function ($query) {
-                $query->where('status', '=', Status::CLOSED->value);
-            }
-        ]);
-
         $paginationResult = $query->paginate(
             (int)$request->input('perPage') ?? 20,
             '*',
@@ -132,10 +146,6 @@ class ProjectRepository
         $model->slug = $model->id . '-' . Str::slug($projectTitle);
         $model->save();
 
-        return [
-            ...$model->toArray(),
-            'tasks_count' => 0,
-            'completed_tasks_count' => 0
-        ];
+        return $model->toArray();
     }
 }
