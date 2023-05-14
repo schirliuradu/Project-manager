@@ -25,6 +25,16 @@ class Task extends Model
     protected $keyType = 'string';
 
     /**
+     * @var string[]
+     */
+    protected $hidden = [
+        'created_at',
+        'updated_at',
+        'assignee_id',
+        'project_id',
+    ];
+
+    /**
      * Get project assignee.
      *
      * @return BelongsTo
@@ -42,5 +52,23 @@ class Task extends Model
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
+    }
+
+    /**
+     * @return array
+     */
+    public function toArray(): array
+    {
+        /** @var User $assignee */
+        $assignee = $this->getAttribute('assignee');
+
+        return [
+            ...parent::toArray(),
+            'assignee' => [
+                'id' => $assignee->getAttribute('id'),
+                'first_nae' => $assignee->getAttribute('first_name'),
+                'last_name' => $assignee->getAttribute('last_name'),
+            ]
+        ];
     }
 }

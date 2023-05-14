@@ -7,7 +7,6 @@ use App\Helpers\Formatters\PaginationFormatter;
 use App\Http\Requests\AddProjectRequest;
 use App\Http\Requests\GetProjectsRequest;
 use App\Http\Requests\UpdateProjectRequest;
-use App\Models\Enums\SortingValues;
 use App\Models\Enums\Status;
 use App\Models\Project;
 use Database\Factories\ProjectFactory;
@@ -15,6 +14,8 @@ use Illuminate\Support\Str;
 
 class ProjectRepository
 {
+    use SearchTrait;
+
     /**
      * User repository class constructor.
      *
@@ -115,36 +116,10 @@ class ProjectRepository
         $query = $this->project->query();
 
         // handle STATUS filters
-        $query->when($request->input('withClosed'), function ($query) {
-            $query->whereIn('status', Status::values());
-        }, function ($query) use ($request) {
-            $query->where('status', '=', $request->input('onlyClosed')
-                ? Status::CLOSED->value
-                : Status::OPEN->value
-            );
-        });
+        $this->bindStatusFilterLogic($request, $query);
 
         // handle sorting
-        if ($sortBy = $request->input('sortBy')) {
-            switch ($sortBy) {
-                case SortingValues::ALPHADESC->value:
-                    $query->orderBy('title', 'desc');
-                    break;
-
-                case SortingValues::ALPHAASC->value:
-                    $query->orderBy('title');
-                    break;
-
-                case SortingValues::UPDATE->value:
-                    $query->orderBy('updated_at');
-                    break;
-
-                case SortingValues::CREATE->value:
-                default:
-                    $query->orderBy('created_at');
-                    break;
-            }
-        }
+        $this->bindSortingFilterLogic($request, $query);
 
         $paginationResult = $query->paginate(
             (int)$request->input('perPage') ?? 20,

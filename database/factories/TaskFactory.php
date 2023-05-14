@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Models\Enums\Complexity;
+use App\Models\Enums\Difficulty;
 use App\Models\Enums\Priority;
 use App\Models\Enums\Status;
 use App\Models\Project;
@@ -31,7 +31,7 @@ class TaskFactory extends Factory
             'description' => $faker->paragraph(4),
             'status' => $faker->randomElement(Status::values()),
             'priority' => $faker->randomElement(Priority::values()),
-            'complexity' => $faker->randomElement(Complexity::values()),
+            'difficulty' => $faker->randomElement(Difficulty::values()),
             'assignee_id' => User::all()->random()->id,
             'project_id' => Project::all()->random()->id,
         ];

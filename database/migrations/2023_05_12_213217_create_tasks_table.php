@@ -1,6 +1,6 @@
 <?php
 
-use App\Models\Enums\Complexity;
+use App\Models\Enums\Difficulty;
 use App\Models\Enums\Priority;
 use App\Models\Enums\Status;
 use Illuminate\Database\Migrations\Migration;
@@ -23,7 +23,7 @@ return new class extends Migration
             $table->uuid('project_id');
             $table->enum('status', Status::values())->default(Status::OPEN->value);
             $table->enum('priority', Priority::values())->default(Priority::MEDIUM->value);
-            $table->enum('complexity', Complexity::values())->default(Complexity::FIVE->value);
+            $table->enum('difficulty', Difficulty::values())->default(Difficulty::FIVE->value);
             $table->timestamps();
 
             $table->foreign('assignee_id')

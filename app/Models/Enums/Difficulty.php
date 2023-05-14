@@ -2,7 +2,7 @@
 
 namespace App\Models\Enums;
 
-enum Complexity: int
+enum Difficulty: int
 {
     case ONE = 1;
     case TWO = 2;

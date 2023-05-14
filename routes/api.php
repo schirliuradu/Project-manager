@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -26,4 +27,5 @@ Route::group([
     Route::post('/projects', [ProjectController::class, 'addProject']);
     Route::patch('/projects/{project}', [ProjectController::class, 'updateProject']);
     Route::patch('/projects/{project}/{action}', [ProjectController::class, 'updateProjectStatus']);
+    Route::get('/projects/{project}/tasks', [TaskController::class, 'getProjectTasks']);
 });
