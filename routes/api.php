@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProjectController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,6 +20,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 Route::group([
     'middleware' => 'jwt'
-], function ($router) {
-    Route::get('/projects', [\App\Http\Controllers\ProjectController::class, 'getProjects']);
+], function () {
+    Route::get('/projects', [ProjectController::class, 'getProjects']);
+    Route::post('/projects', [ProjectController::class, 'addProject']);
 });

@@ -3,11 +3,14 @@
 namespace App\Repositories;
 
 use App\Helpers\Formatters\PaginationFormatter;
+use App\Http\Requests\AddProjectRequest;
+use App\Http\Requests\GetProjectsRequest;
 use App\Models\Enums\SortingValues;
 use App\Models\Enums\Status;
 use App\Models\Project;
+use Database\Factories\ProjectFactory;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 class ProjectRepository
 {
@@ -16,10 +19,12 @@ class ProjectRepository
      *
      * @param Project $project
      * @param PaginationFormatter $paginationFormatter
+     * @param ProjectFactory $projectFactory
      */
     public function __construct(
         protected Project             $project,
-        protected PaginationFormatter $paginationFormatter
+        protected PaginationFormatter $paginationFormatter,
+        protected ProjectFactory $projectFactory
     )
     {
     }
@@ -43,7 +48,7 @@ class ProjectRepository
      *
      * @return array
      */
-    public function searchProjects(Request $request): array
+    public function searchProjects(GetProjectsRequest $request): array
     {
         $query = $this->project->query();
 
@@ -94,8 +99,33 @@ class ProjectRepository
         );
 
         return [
-            'data' => $paginationResult->items(),
-            'meta' => $this->paginationFormatter->format($paginationResult)
+            $paginationResult->items(),
+            $this->paginationFormatter->format($paginationResult)
+        ];
+    }
+
+    /**
+     * @param AddProjectRequest $request
+     *
+     * @return array
+     */
+    public function addProject(AddProjectRequest $request): array
+    {
+        $projectTitle = $request->input('title');
+
+        $model = $this->projectFactory->create([
+            'title' => $projectTitle,
+            'description' => $request->input('description'),
+            'status' => Status::OPEN->value,
+        ]);
+
+        $model->slug = $model->id . '-' . Str::slug($projectTitle);
+        $model->save();
+
+        return [
+            ...$model->toArray(),
+            'tasks_count' => 0,
+            'completed_tasks_count' => 0
         ];
     }
 }
