@@ -34,17 +34,27 @@ class ProjectRepository
      *
      * @param string $id
      *
-     * @return Project|null
+     * @return array
      */
-    public function find(string $id): ?Project
+    public function find(string $id): array
     {
-        return Project::find($id);
+        $query = $this->project->query();
+
+        $query->where('id', '=', $id);
+        $query->withCount([
+            'tasks',
+            'tasks as completed_tasks_count' => function ($query) {
+                $query->where('status', '=', Status::CLOSED->value);
+            }
+        ]);
+
+        return $query->get()->toArray();
     }
 
     /**
      * Method which helps to search through all projects with input filters.
      *
-     * @param Request $request
+     * @param GetProjectsRequest $request
      *
      * @return array
      */

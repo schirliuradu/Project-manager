@@ -22,5 +22,6 @@ Route::group([
     'middleware' => 'jwt'
 ], function () {
     Route::get('/projects', [ProjectController::class, 'getProjects']);
+    Route::get('/projects/{project}', [ProjectController::class, 'getProject']);
     Route::post('/projects', [ProjectController::class, 'addProject']);
 });
