@@ -2,20 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ProjectNotFoundException;
 use App\Http\Requests\AddProjectRequest;
 use App\Http\Requests\GetProjectRequest;
 use App\Http\Requests\GetProjectsRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Repositories\ProjectRepository;
+use App\Services\ProjectService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Str;
 
 class ProjectController extends Controller
 {
     /**
      * @param ProjectRepository $repo
+     * @param ProjectService $service
      */
-    public function __construct(protected ProjectRepository $repo)
+    public function __construct(protected ProjectRepository $repo, protected ProjectService $service)
     {
     }
 
@@ -27,12 +29,7 @@ class ProjectController extends Controller
      */
     public function getProjects(GetProjectsRequest $request): JsonResponse
     {
-        [$data, $meta] = $this->repo->searchProjects($request);
-
-        return response()->json([
-            'data' => $data,
-            'meta' => $meta
-        ]);
+        return response()->json($this->service->getProjects($request));
     }
 
     /**
@@ -43,9 +40,7 @@ class ProjectController extends Controller
      */
     public function getProject(GetProjectRequest $request, string $project): JsonResponse
     {
-        return response()->json([
-            'data' => $this->repo->find($project)
-        ]);
+        return response()->json($this->service->getProject($project));
     }
 
     /**
@@ -55,9 +50,7 @@ class ProjectController extends Controller
      */
     public function addProject(AddProjectRequest $request): JsonResponse
     {
-        return response()->json([
-            'data' => $this->repo->addProject($request)
-        ]);
+        return response()->json($this->service->addProject($request));
     }
 
     /**
@@ -65,12 +58,10 @@ class ProjectController extends Controller
      * @param string $project
      *
      * @return JsonResponse
+     * @throws ProjectNotFoundException
      */
     public function updateProject(UpdateProjectRequest $request, string $project): JsonResponse
     {
-//        dd(Str::uuid());
-        return response()->json([
-            'data' => $this->repo->updateProject($request, $project)
-        ]);
+        return response()->json($this->service->updateProject($request, $project));
     }
 }

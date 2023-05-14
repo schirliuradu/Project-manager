@@ -11,6 +11,8 @@ use App\Models\Enums\SortingValues;
 use App\Models\Enums\Status;
 use App\Models\Project;
 use Database\Factories\ProjectFactory;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class ProjectRepository
@@ -35,25 +37,10 @@ class ProjectRepository
      *
      * @param string $id
      *
-     * @return array
-     */
-    public function find(string $id): array
-    {
-        return $this->project
-            ->query()
-            ->where('id', '=', $id)
-            ->first()
-            ->toArray();
-    }
-
-    /**
-     * @param UpdateProjectRequest $request
-     * @param string $id
-     *
-     * @return array
+     * @return Project | null
      * @throws ProjectNotFoundException
      */
-    public function updateProject(UpdateProjectRequest $request, string $id): array
+    public function find(string $id): ?Project
     {
         $project = $this->project
             ->query()
@@ -64,12 +51,22 @@ class ProjectRepository
             throw new ProjectNotFoundException();
         }
 
+        return $project;
+    }
+
+    /**
+     * @param Project $project
+     * @param UpdateProjectRequest $request
+     *
+     * @return Project
+     */
+    public function updateProject(Project $project, UpdateProjectRequest $request): Project
+    {
         $project->title = $request->input('title');
         $project->description = $request->input('description');
-
         $project->save();
 
-        return $project->toArray();
+        return $project;
     }
 
     /**
