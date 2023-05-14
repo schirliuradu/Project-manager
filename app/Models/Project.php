@@ -54,6 +54,14 @@ class Project extends Model
     }
 
     /**
+     * @return HasMany
+     */
+    public function openedTasks(): HasMany
+    {
+        return $this->tasks()->where('status', '=', Status::OPEN->value);
+    }
+
+    /**
      * @return array
      */
     public function toArray(): array

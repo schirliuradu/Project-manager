@@ -6,7 +6,10 @@ use App\Exceptions\ProjectNotFoundException;
 use App\Http\Requests\AddProjectRequest;
 use App\Http\Requests\GetProjectsRequest;
 use App\Http\Requests\UpdateProjectRequest;
+use App\Models\Enums\Status;
+use App\Models\Enums\StatusActions;
 use App\Repositories\ProjectRepository;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class ProjectService
 {
@@ -73,5 +76,36 @@ class ProjectService
                 ->updateProject($project, $request)
                 ->toArray()
         ];
+    }
+
+    /**
+     * @param string $id
+     * @param string $status
+     *
+     * @return void
+     * @throws ProjectNotFoundException
+     * @throws HttpException
+     */
+    public function updateProjectStatus(string $id, string $status): void
+    {
+        $project = $this->repo->find($id);
+
+        if ($status === StatusActions::OPEN->value) {
+            // open action with closed project -> boom
+            if ($project->getAttribute('status') === Status::CLOSED->value) {
+                throw new HttpException(400, 'Bad Request');
+            }
+
+            // open project in all other cases
+            // in fact, we can open just already opened projects: does that make sense?
+            $this->repo->openProject($project);
+        } else {
+            if ($this->repo->hasOpenedTasks($project)) {
+                // close action but project still has some opened tasks
+                throw new HttpException(400, 'Bad Request');
+            }
+
+            $this->repo->closeProject($project);
+        }
     }
 }

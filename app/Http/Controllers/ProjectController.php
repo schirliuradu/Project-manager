@@ -7,17 +7,17 @@ use App\Http\Requests\AddProjectRequest;
 use App\Http\Requests\GetProjectRequest;
 use App\Http\Requests\GetProjectsRequest;
 use App\Http\Requests\UpdateProjectRequest;
-use App\Repositories\ProjectRepository;
+use App\Http\Requests\UpdateProjectStatusRequest;
 use App\Services\ProjectService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 class ProjectController extends Controller
 {
     /**
-     * @param ProjectRepository $repo
      * @param ProjectService $service
      */
-    public function __construct(protected ProjectRepository $repo, protected ProjectService $service)
+    public function __construct(protected ProjectService $service)
     {
     }
 
@@ -37,6 +37,7 @@ class ProjectController extends Controller
      * @param string $project
      *
      * @return JsonResponse
+     * @throws ProjectNotFoundException
      */
     public function getProject(GetProjectRequest $request, string $project): JsonResponse
     {
@@ -63,5 +64,20 @@ class ProjectController extends Controller
     public function updateProject(UpdateProjectRequest $request, string $project): JsonResponse
     {
         return response()->json($this->service->updateProject($request, $project));
+    }
+
+    /**
+     * @param UpdateProjectStatusRequest $request
+     * @param string $project
+     * @param string $status
+     *
+     * @return Response
+     * @throws ProjectNotFoundException
+     */
+    public function updateProjectStatus(UpdateProjectStatusRequest $request, string $project, string $status): Response
+    {
+        $this->service->updateProjectStatus($project, $status);
+
+        return response()->noContent();
     }
 }

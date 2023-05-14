@@ -11,8 +11,6 @@ use App\Models\Enums\SortingValues;
 use App\Models\Enums\Status;
 use App\Models\Project;
 use Database\Factories\ProjectFactory;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
 class ProjectRepository
@@ -62,11 +60,47 @@ class ProjectRepository
      */
     public function updateProject(Project $project, UpdateProjectRequest $request): Project
     {
-        $project->title = $request->input('title');
-        $project->description = $request->input('description');
+        $project->setAttribute('title', $request->input('title'));
+        $project->setAttribute('description', $request->input('description'));
         $project->save();
 
         return $project;
+    }
+
+    /**
+     * @param Project $project
+     *
+     * @return Project
+     */
+    public function closeProject(Project $project): Project
+    {
+        $project->setAttribute('status', Status::CLOSED->value);
+        $project->save();
+
+        return $project;
+    }
+
+    /**
+     * @param Project $project
+     *
+     * @return Project
+     */
+    public function openProject(Project $project): Project
+    {
+        $project->setAttribute('status', Status::OPEN->value);
+        $project->save();
+
+        return $project;
+    }
+
+    /**
+     * @param Project $project
+     *
+     * @return bool
+     */
+    public function hasOpenedTasks(Project $project): bool
+    {
+        return $project->openedTasks()->count() > 0;
     }
 
     /**
