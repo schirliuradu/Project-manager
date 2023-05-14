@@ -1,5 +1,8 @@
 <?php
 
+use App\Models\Enums\Complexity;
+use App\Models\Enums\Priority;
+use App\Models\Enums\Status;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -12,8 +15,26 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('tasks', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
+            $table->string('slug');
+            $table->string('title');
+            $table->text('description');
+            $table->uuid('assignee_id');
+            $table->uuid('project_id');
+            $table->enum('status', Status::values())->default(Status::OPEN->value);
+            $table->enum('priority', Priority::values())->default(Priority::MEDIUM->value);
+            $table->enum('complexity', Complexity::values())->default(Complexity::FIVE->value);
             $table->timestamps();
+
+            $table->foreign('assignee_id')
+                ->references('id')
+                ->on('users')
+                ->cascadeOnDelete();
+
+            $table->foreign('project_id')
+                ->references('id')
+                ->on('projects')
+                ->cascadeOnDelete();
         });
     }
 

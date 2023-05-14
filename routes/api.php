@@ -20,7 +20,5 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::group([
     'middleware' => 'jwt'
 ], function ($router) {
-    Route::get('/projects', function (\Illuminate\Http\Request $request) {
-        dd($request->bearerToken());
-    });
+    Route::get('/projects', [\App\Http\Controllers\ProjectController::class, 'getProjects']);
 });

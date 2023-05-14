@@ -7,20 +7,12 @@ use App\Models\User;
 class UserRepository
 {
     /**
-     * User model instance.
-     *
-     * @var User
-     */
-    protected User $user;
-
-    /**
      * User repository class constructor.
      *
      * @param User $user
      */
-    public function __construct(User $user)
+    public function __construct(protected User $user)
     {
-        $this->user = $user;
     }
 
     /**
