@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Exceptions\ExpiredJwtTokenException;
 use App\Exceptions\RequestWithoutBearerException;
 use App\Exceptions\UnauthorizedUserException;
 use App\Services\JwtService;
@@ -29,6 +30,7 @@ class JwtApiMiddleware
      * @return Response
      * @throws UnauthorizedUserException
      * @throws RequestWithoutBearerException
+     * @throws ExpiredJwtTokenException
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -40,8 +42,10 @@ class JwtApiMiddleware
             $this->jwtService->parseAndValidateToken($bearer);
             return $next($request);
 
-        } catch (Exception|RequiredConstraintsViolated $e) {
-            throw new UnauthorizedUserException();
+        } catch (Exception $e) {
+            throw ($e instanceof ExpiredJwtTokenException)
+                ? $e
+                : new UnauthorizedUserException();
         }
     }
 }

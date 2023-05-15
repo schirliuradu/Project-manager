@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Exceptions\ExpiredJwtTokenException;
 use DateTimeInterface;
 use Exception;
 use Lcobucci\JWT\Builder;
@@ -11,6 +12,7 @@ use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\UnencryptedToken;
 use Lcobucci\JWT\Validation\Constraint\IssuedBy;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
+use Lcobucci\JWT\Validation\Constraint\StrictValidAt;
 use Lcobucci\JWT\Validation\RequiredConstraintsViolated;
 use Lcobucci\JWT\Validator;
 
@@ -55,7 +57,7 @@ class JwtService
      * Method which parses and validates given token returning boolean result.
      *
      * @param string $bearer
-     * @throws RequiredConstraintsViolated|Exception
+     * @throws RequiredConstraintsViolated|ExpiredJwtTokenException|Exception
      */
     public function parseAndValidateToken(string $bearer): void
     {
@@ -63,9 +65,13 @@ class JwtService
 
         $this->validator->assert($token,
             new IssuedBy(env('APP_URL')),
-            new SignedWith($this->algorithm, $this->signingKey)
+            new SignedWith($this->algorithm, $this->signingKey),
             // we can add and check all stuff we desire here ...
         );
+
+        if ($token->isExpired($this->dateTime)) {
+            throw new ExpiredJwtTokenException();
+        }
     }
 
     /**
