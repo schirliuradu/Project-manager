@@ -29,4 +29,5 @@ Route::group([
     Route::patch('/projects/{project}/{action}', [ProjectController::class, 'updateProjectStatus']);
     Route::get('/projects/{project}/tasks', [TaskController::class, 'getProjectTasks']);
     Route::post('/projects/{project}/tasks', [TaskController::class, 'addTaskToProject']);
+    Route::get('/projects/{project}/tasks/{task}', [TaskController::class, 'getProjectTask']);
 });

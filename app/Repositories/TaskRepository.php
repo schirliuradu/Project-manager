@@ -31,6 +31,21 @@ class TaskRepository
 
 
     /**
+     * @param string $projectId
+     * @param string $taskId
+     *
+     * @return Task|null
+     */
+    public function getProjectTask(string $projectId, string $taskId): ?Task
+    {
+        return $this->task
+            ->query()
+            ->where('id', '=', $taskId)
+            ->where('project_id', '=', $projectId)
+            ->first();
+    }
+
+    /**
      * @param GetProjectTasksRequest $request
      * @param string $projectId
      *
