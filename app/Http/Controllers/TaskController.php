@@ -8,8 +8,10 @@ use App\Http\Requests\AddTaskToProjectRequest;
 use App\Http\Requests\GetProjectTaskRequest;
 use App\Http\Requests\GetProjectTasksRequest;
 use App\Http\Requests\UpdateProjectTaskRequest;
+use App\Http\Requests\UpdateProjectTaskStatusRequest;
 use App\Services\TaskService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
 
 class TaskController extends Controller
 {
@@ -68,5 +70,25 @@ class TaskController extends Controller
     public function updateProjectTask(UpdateProjectTaskRequest $request, string $project, string $task): JsonResponse
     {
         return response()->json($this->service->updateProjectTask($request, $project, $task));
+    }
+
+    /**
+     * @param UpdateProjectTaskStatusRequest $request
+     * @param string $project
+     * @param string $task
+     * @param string $action
+     *
+     * @return Response
+     */
+    public function updateProjectTaskStatus(
+        UpdateProjectTaskStatusRequest $request,
+        string $project,
+        string $task,
+        string $action
+    ): Response
+    {
+        $this->service->updateProjectTaskStatus($project, $task, $action);
+
+        return response()->noContent();
     }
 }

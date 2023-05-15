@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Exceptions\TaskNotFoundException;
 use App\Helpers\Formatters\PaginationFormatter;
 use App\Http\Requests\AddTaskToProjectRequest;
 use App\Http\Requests\GetProjectTasksRequest;
@@ -35,14 +36,21 @@ class TaskRepository
      * @param string $taskId
      *
      * @return Task|null
+     * @throws TaskNotFoundException
      */
     public function getProjectTask(string $projectId, string $taskId): ?Task
     {
-        return $this->task
+        $task = $this->task
             ->query()
             ->where('id', '=', $taskId)
             ->where('project_id', '=', $projectId)
             ->first();
+
+        if (!$task) {
+            throw new TaskNotFoundException();
+        }
+
+        return $task;
     }
 
     /**
@@ -130,6 +138,45 @@ class TaskRepository
             $task->setAttribute('priority', $priority);
         }
 
+        $task->save();
+
+        return $task;
+    }
+
+    /**
+     * @param Task $task
+     *
+     * @return Task
+     */
+    public function closeTask(Task $task): Task
+    {
+        $task->setAttribute('status', Status::CLOSED->value);
+        $task->save();
+
+        return $task;
+    }
+
+    /**
+     * @param Task $task
+     *
+     * @return Task
+     */
+    public function blockTask(Task $task): Task
+    {
+        $task->setAttribute('status', Status::BLOCKED->value);
+        $task->save();
+
+        return $task;
+    }
+
+    /**
+     * @param Task $task
+     *
+     * @return Task
+     */
+    public function openTask(Task $task): Task
+    {
+        $task->setAttribute('status', Status::OPEN->value);
         $task->save();
 
         return $task;

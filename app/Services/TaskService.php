@@ -9,6 +9,7 @@ use App\Http\Requests\GetProjectTaskRequest;
 use App\Http\Requests\GetProjectTasksRequest;
 use App\Http\Requests\UpdateProjectTaskRequest;
 use App\Models\Enums\Status;
+use App\Models\Enums\StatusActions;
 use App\Repositories\ProjectRepository;
 use App\Repositories\TaskRepository;
 use App\Repositories\UserRepository;
@@ -55,14 +56,10 @@ class TaskService
      */
     public function getProjectTask(GetProjectTaskRequest $request, string $projectId, string $taskId): array
     {
-        $task = $this->repo->getProjectTask($projectId, $taskId);
-
-        if (!$task) {
-            throw new TaskNotFoundException();
-        }
-
         return [
-            'data' => $task->toArray()
+            'data' => $this->repo
+                ->getProjectTask($projectId, $taskId)
+                ->toArray()
         ];
     }
 
@@ -82,7 +79,7 @@ class TaskService
             !$assignee ||
             $project->getAttribute('status') === Status::CLOSED->value
         ) {
-            throw new HttpException(400, 'Bad Request');
+            $this->badRequestException();
         }
 
         return [
@@ -107,14 +104,10 @@ class TaskService
 
         $task = $this->repo->getProjectTask($projectId, $taskId);
 
-        if (!$task) {
-            throw new TaskNotFoundException();
-        }
-
         // new assignee validation
         if ($newAssignee = $request->input('assignee')) {
             if (!$this->userRepo->find($newAssignee)) {
-                throw new HttpException(400, 'Bad Request');
+                $this->badRequestException();
             }
         }
 
@@ -123,5 +116,52 @@ class TaskService
                 ->updateProjectTask($request, $task)
                 ->toArray()
         ];
+    }
+
+    /**
+     * @param string $projectId
+     * @param string $taskId
+     * @param string $action
+     *
+     * @return void
+     * @throws ProjectNotFoundException
+     * @throws TaskNotFoundException
+     */
+    public function updateProjectTaskStatus(string $projectId, string $taskId, string $action): void
+    {
+        $project = $this->projectRepo->find($projectId);
+
+        if ($project->getAttribute('status') === Status::CLOSED->value) {
+            $this->badRequestException();
+        }
+
+        $task = $this->repo->getProjectTask($projectId, $taskId);
+
+        switch ($action) {
+            case StatusActions::OPEN->value:
+                $this->repo->openTask($task);
+                break;
+
+            case StatusActions::BLOCK->value:
+                $this->repo->blockTask($task);
+                break;
+
+            case StatusActions::CLOSE->value:
+                $this->repo->closeTask($task);
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    /**
+     * Helper method.
+     *
+     * @return void
+     */
+    private function badRequestException(): void
+    {
+        throw new HttpException(400, 'Bad Request');
     }
 }

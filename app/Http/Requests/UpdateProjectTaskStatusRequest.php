@@ -10,7 +10,7 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
 
-class UpdateProjectStatusRequest extends FormRequest
+class UpdateProjectTaskStatusRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -29,7 +29,8 @@ class UpdateProjectStatusRequest extends FormRequest
     {
         return [
             'project' => 'required|uuid',
-            'action' => Rule::in(StatusActions::basicValues())
+            'task' => 'required|uuid',
+            'action' => Rule::in(StatusActions::allValues())
         ];
     }
 
@@ -40,6 +41,7 @@ class UpdateProjectStatusRequest extends FormRequest
     {
         return array_merge($this->request->all(), [
             'project' => $this->route('project'),
+            'task' => $this->route('task'),
             'action' => $this->route('action'),
         ]);
     }

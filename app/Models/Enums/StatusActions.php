@@ -5,6 +5,7 @@ namespace App\Models\Enums;
 enum StatusActions: string
 {
     case OPEN = 'open';
+    case BLOCK = 'block';
     case CLOSE = 'close';
 
     /**
