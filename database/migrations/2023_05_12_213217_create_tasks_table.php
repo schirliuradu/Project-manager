@@ -21,7 +21,7 @@ return new class extends Migration
             $table->text('description');
             $table->uuid('assignee_id');
             $table->uuid('project_id');
-            $table->enum('status', Status::values())->default(Status::OPEN->value);
+            $table->enum('status', Status::allValues())->default(Status::OPEN->value);
             $table->enum('priority', Priority::values())->default(Priority::MEDIUM->value);
             $table->enum('difficulty', Difficulty::values())->default(Difficulty::FIVE->value);
             $table->timestamps();

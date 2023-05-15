@@ -29,7 +29,7 @@ class TaskFactory extends Factory
             'title' => $faker->sentence(3),
             'slug' => Str::slug($faker->sentence(3)),
             'description' => $faker->paragraph(4),
-            'status' => $faker->randomElement(Status::values()),
+            'status' => $faker->randomElement(Status::allValues()),
             'priority' => $faker->randomElement(Priority::values()),
             'difficulty' => $faker->randomElement(Difficulty::values()),
             'assignee_id' => User::all()->random()->id,

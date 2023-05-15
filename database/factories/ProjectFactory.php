@@ -25,7 +25,7 @@ class ProjectFactory extends Factory
             'title' => $faker->sentence(3),
             'slug' => Str::slug($faker->sentence(3)),
             'description' => $faker->paragraph(4),
-            'status' => $faker->randomElement(Status::values()),
+            'status' => $faker->randomElement(Status::basicValues()),
         ];
     }
 }

@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('slug');
             $table->string('title');
             $table->text('description');
-            $table->enum('status', Status::values())
+            $table->enum('status', Status::basicValues())
                 ->default(Status::OPEN->value);
             $table->timestamps();
         });

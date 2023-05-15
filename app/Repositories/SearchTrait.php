@@ -19,7 +19,7 @@ trait SearchTrait
     {
         // handle STATUS filters
         $builder->when($request->input('withClosed'), function ($builder) {
-            $builder->whereIn('status', Status::values());
+            $builder->whereIn('status', Status::basicValues());
         }, function ($builder) use ($request) {
             $builder->where('status', '=', $request->input('onlyClosed')
                 ? Status::CLOSED->value
