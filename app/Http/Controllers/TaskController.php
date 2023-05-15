@@ -7,6 +7,7 @@ use App\Exceptions\TaskNotFoundException;
 use App\Http\Requests\AddTaskToProjectRequest;
 use App\Http\Requests\GetProjectTaskRequest;
 use App\Http\Requests\GetProjectTasksRequest;
+use App\Http\Requests\UpdateProjectTaskRequest;
 use App\Services\TaskService;
 use Illuminate\Http\JsonResponse;
 
@@ -53,5 +54,19 @@ class TaskController extends Controller
     public function addTaskToProject(AddTaskToProjectRequest $request, string $project): JsonResponse
     {
         return response()->json($this->service->addTaskToProject($request, $project));
+    }
+
+    /**
+     * @param UpdateProjectTaskRequest $request
+     * @param string $project
+     * @param string $task
+     *
+     * @return JsonResponse
+     * @throws ProjectNotFoundException
+     * @throws TaskNotFoundException
+     */
+    public function updateProjectTask(UpdateProjectTaskRequest $request, string $project, string $task): JsonResponse
+    {
+        return response()->json($this->service->updateProjectTask($request, $project, $task));
     }
 }

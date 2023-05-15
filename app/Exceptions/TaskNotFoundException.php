@@ -13,7 +13,7 @@ class TaskNotFoundException extends Exception
     public function render(): JsonResponse
     {
         return response()->json([
-            'message' => "Task not found!"
+            'message' => "Task not found for given id or in combo with given project id!"
         ], 404);
     }
 }

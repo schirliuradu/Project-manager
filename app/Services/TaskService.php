@@ -7,6 +7,7 @@ use App\Exceptions\TaskNotFoundException;
 use App\Http\Requests\AddTaskToProjectRequest;
 use App\Http\Requests\GetProjectTaskRequest;
 use App\Http\Requests\GetProjectTasksRequest;
+use App\Http\Requests\UpdateProjectTaskRequest;
 use App\Models\Enums\Status;
 use App\Repositories\ProjectRepository;
 use App\Repositories\TaskRepository;
@@ -87,6 +88,39 @@ class TaskService
         return [
             'data' => $this->repo
                 ->addTaskToProject($request, $projectId)
+                ->toArray()
+        ];
+    }
+
+    /**
+     * @param UpdateProjectTaskRequest $request
+     * @param string $projectId
+     * @param string $taskId
+     *
+     * @return array[]
+     * @throws TaskNotFoundException|ProjectNotFoundException
+     */
+    public function updateProjectTask(UpdateProjectTaskRequest $request, string $projectId, string $taskId): array
+    {
+        // project validation
+        $this->projectRepo->find($projectId);
+
+        $task = $this->repo->getProjectTask($projectId, $taskId);
+
+        if (!$task) {
+            throw new TaskNotFoundException();
+        }
+
+        // new assignee validation
+        if ($newAssignee = $request->input('assignee')) {
+            if (!$this->userRepo->find($newAssignee)) {
+                throw new HttpException(400, 'Bad Request');
+            }
+        }
+
+        return [
+            'data' => $this->repo
+                ->updateProjectTask($request, $task)
                 ->toArray()
         ];
     }

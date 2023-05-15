@@ -61,8 +61,16 @@ class ProjectRepository
      */
     public function updateProject(Project $project, UpdateProjectRequest $request): Project
     {
-        $project->setAttribute('title', $request->input('title'));
-        $project->setAttribute('description', $request->input('description'));
+        // update title only if new one was passed - it's not required
+        if ($title = $request->input('title')) {
+            $project->setAttribute('title', $title);
+        }
+
+        // same here for the description
+        if ($description = $request->input('description')) {
+            $project->setAttribute('description', $description);
+        }
+
         $project->save();
 
         return $project;

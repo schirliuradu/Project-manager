@@ -5,9 +5,9 @@ namespace App\Repositories;
 use App\Helpers\Formatters\PaginationFormatter;
 use App\Http\Requests\AddTaskToProjectRequest;
 use App\Http\Requests\GetProjectTasksRequest;
+use App\Http\Requests\UpdateProjectTaskRequest;
 use App\Models\Enums\Status;
 use App\Models\Task;
-use Database\Factories\ProjectFactory;
 use Database\Factories\TaskFactory;
 use Illuminate\Support\Str;
 
@@ -97,6 +97,39 @@ class TaskRepository
         ]);
 
         $task->setAttribute('slug', $task->getAttribute('id') . '-' . Str::slug($taskTitle));
+        $task->save();
+
+        return $task;
+    }
+
+    /**
+     * @param UpdateProjectTaskRequest $request
+     * @param Task $task
+     *
+     * @return Task
+     */
+    public function updateProjectTask(UpdateProjectTaskRequest $request, Task $task): Task
+    {
+        if ($title = $request->input('title')) {
+            $task->setAttribute('title', $title);
+        }
+
+        if ($description = $request->input('description')) {
+            $task->setAttribute('description', $description);
+        }
+
+        if ($assignee = $request->input('assignee')) {
+            $task->setAttribute('assignee', $assignee);
+        }
+
+        if ($difficulty = $request->input('difficulty')) {
+            $task->setAttribute('difficulty', $difficulty);
+        }
+
+        if ($priority = $request->input('priority')) {
+            $task->setAttribute('priority', $priority);
+        }
+
         $task->save();
 
         return $task;

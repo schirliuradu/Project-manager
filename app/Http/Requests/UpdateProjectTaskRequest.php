@@ -2,13 +2,16 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Enums\Difficulty;
+use App\Models\Enums\Priority;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\Rule;
 
-class UpdateProjectRequest extends FormRequest
+class UpdateProjectTaskRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -27,8 +30,12 @@ class UpdateProjectRequest extends FormRequest
     {
         return [
             'project' => 'required|uuid',
+            'task' => 'required|uuid',
             'title' => 'string|max:255',
-            'description' => 'string'
+            'description' => 'string',
+            'assignee' => 'uuid',
+            'difficulty' => Rule::in(Difficulty::values()),
+            'priority' => Rule::in(Priority::values()),
         ];
     }
 
@@ -39,6 +46,7 @@ class UpdateProjectRequest extends FormRequest
     {
         return array_merge($this->request->all(), [
             'project' => $this->route('project'),
+            'task' => $this->route('task')
         ]);
     }
 
