@@ -29,7 +29,7 @@ class UpdateProjectStatusRequest extends FormRequest
     {
         return [
             'project' => 'required|uuid',
-            'action' => Rule::in(StatusActions::values())
+            'action' => Rule::in(StatusActions::basicValues())
         ];
     }
 
