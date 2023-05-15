@@ -137,21 +137,21 @@ class ProjectRepository
     /**
      * @param AddProjectRequest $request
      *
-     * @return array
+     * @return Project
      */
-    public function addProject(AddProjectRequest $request): array
+    public function addProject(AddProjectRequest $request): Project
     {
         $projectTitle = $request->input('title');
 
-        $model = $this->projectFactory->create([
+        $project = $this->projectFactory->create([
             'title' => $projectTitle,
             'description' => $request->input('description'),
             'status' => Status::OPEN->value,
         ]);
 
-        $model->slug = $model->id . '-' . Str::slug($projectTitle);
-        $model->save();
+        $project->setAttribute('slug', $project->getAttribute('id') . '-' . Str::slug($projectTitle));
+        $project->save();
 
-        return $model->toArray();
+        return $project;
     }
 }

@@ -57,7 +57,11 @@ class ProjectService
      */
     public function addProject(AddProjectRequest $request): array
     {
-        return ['data' => $this->repo->addProject($request)];
+        return [
+            'data' => $this->repo
+                ->addProject($request)
+                ->toArray()
+        ];
     }
 
     /**

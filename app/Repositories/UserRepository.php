@@ -2,6 +2,7 @@
 
 namespace App\Repositories;
 
+use App\Exceptions\UserNotFoundException;
 use App\Models\User;
 
 class UserRepository
@@ -23,7 +24,21 @@ class UserRepository
     public function getUserByEmail(string $email): ?User
     {
         return $this->user
+            ->query()
             ->where('email', $email)
+            ->first();
+    }
+
+    /**
+     * @param string $id
+     *
+     * @return User|null
+     */
+    public function find(string $id): ?User
+    {
+        return $this->user
+            ->query()
+            ->where('id', '=', $id)
             ->first();
     }
 }

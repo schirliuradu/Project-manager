@@ -3,9 +3,13 @@
 namespace App\Repositories;
 
 use App\Helpers\Formatters\PaginationFormatter;
+use App\Http\Requests\AddTaskToProjectRequest;
 use App\Http\Requests\GetProjectTasksRequest;
+use App\Models\Enums\Status;
 use App\Models\Task;
 use Database\Factories\ProjectFactory;
+use Database\Factories\TaskFactory;
+use Illuminate\Support\Str;
 
 class TaskRepository
 {
@@ -16,12 +20,12 @@ class TaskRepository
      *
      * @param Task $task
      * @param PaginationFormatter $paginationFormatter
-     * @param ProjectFactory $projectFactory
+     * @param TaskFactory $taskFactory
      */
     public function __construct(
         protected Task                $task,
         protected PaginationFormatter $paginationFormatter,
-        protected ProjectFactory      $projectFactory
+        protected TaskFactory      $taskFactory
     ) {
     }
 
@@ -55,5 +59,31 @@ class TaskRepository
             $paginationResult->items(),
             $this->paginationFormatter->format($paginationResult)
         ];
+    }
+
+    /**
+     * @param AddTaskToProjectRequest $request
+     * @param string $projectId
+     *
+     * @return Task
+     */
+    public function addTaskToProject(AddTaskToProjectRequest $request, string $projectId): Task
+    {
+        $taskTitle = $request->input('title');
+
+        $task = $this->taskFactory->create([
+            'project_id' => $projectId,
+            'assignee_id' => $request->input('assignee'),
+            'title' => $taskTitle,
+            'description' => $request->input('description'),
+            'difficulty' => $request->input('difficulty'),
+            'priority' => $request->input('priority'),
+            'status' => Status::OPEN->value,
+        ]);
+
+        $task->setAttribute('slug', $task->getAttribute('id') . '-' . Str::slug($taskTitle));
+        $task->save();
+
+        return $task;
     }
 }
