@@ -12,6 +12,14 @@ class UsersTableSeeder extends Seeder
      */
     public function run(): void
     {
+        // fake user to auth with
+        \App\Models\User::factory()->create([
+            'email' => 'test@test.com',
+            'password' => 'password',
+            'first_name' => 'Test',
+            'last_name' => 'Test',
+        ]);
+
         \App\Models\User::factory(10)->create();
     }
 }

@@ -9,7 +9,6 @@ use App\Services\JwtService;
 use Closure;
 use Exception;
 use Illuminate\Http\Request;
-use Lcobucci\JWT\Validation\RequiredConstraintsViolated;
 use Symfony\Component\HttpFoundation\Response;
 
 class JwtApiMiddleware

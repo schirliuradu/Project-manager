@@ -1,0 +1,142 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Project Manager OpenApi Documentation",
+        "description": "Project Manager OpenApi Documentation",
+        "contact": {
+            "email": "schirliuradu@gmail.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost/",
+            "description": "Project Manager API Server"
+        }
+    ],
+    "paths": {
+        "/api/projects": {
+            "get": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Get project list",
+                "description": "Endpoint which retrieves list of paginated projects.",
+                "operationId": "getProjects",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/pageParameter"
+                    },
+                    {
+                        "$ref": "#/components/parameters/perPageParameter"
+                    },
+                    {
+                        "$ref": "#/components/parameters/sortByParameter"
+                    },
+                    {
+                        "$ref": "#/components/parameters/withClosedParameter"
+                    },
+                    {
+                        "$ref": "#/components/parameters/onlyClosedParameter"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    },
+                    "422": {
+                        "description": "Unprocessable Content."
+                    },
+                    "404": {
+                        "description": "Resource not found."
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "parameters": {
+            "pageParameter": {
+                "name": "page",
+                "in": "query",
+                "description": "Page",
+                "required": true,
+                "schema": {
+                    "type": "integer"
+                }
+            },
+            "perPageParameter": {
+                "name": "perPage",
+                "in": "query",
+                "description": "Per page items",
+                "required": true,
+                "schema": {
+                    "type": "integer"
+                }
+            },
+            "sortByParameter": {
+                "name": "sortBy",
+                "in": "query",
+                "description": "Results sorting options.",
+                "required": true,
+                "schema": {
+                    "type": "string",
+                    "enum": [
+                        "alpha_desc",
+                        "alpha_asc",
+                        "create",
+                        "update"
+                    ]
+                }
+            },
+            "withClosedParameter": {
+                "name": "withClosed",
+                "in": "query",
+                "description": "Parameter through which require both open and closed projects.",
+                "required": false,
+                "schema": {
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ]
+                }
+            },
+            "onlyClosedParameter": {
+                "name": "onlyClosed",
+                "in": "query",
+                "description": "Parameter through which require only closed projects.",
+                "required": false,
+                "schema": {
+                    "type": "integer",
+                    "enum": [
+                        0,
+                        1
+                    ]
+                }
+            }
+        },
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Projects",
+            "description": "API Endpoints of Projects"
+        }
+    ]
+}

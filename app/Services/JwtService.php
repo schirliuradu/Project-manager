@@ -41,11 +41,11 @@ class JwtService
     /**
      * Creates and returns as string new JWT token.
      *
-     * @param int $userId
+     * @param string $userId
      *
      * @return array
      */
-    public function generateTokens(int $userId): array
+    public function generateTokens(string $userId): array
     {
         return [
             $this->generateAccessToken($userId)->toString(),
@@ -77,11 +77,11 @@ class JwtService
     /**
      * Creates and returns as string new JWT access token.
      *
-     * @param int $userId
+     * @param string $userId
      *
      * @return UnencryptedToken
      */
-    private function generateAccessToken(int $userId): UnencryptedToken
+    private function generateAccessToken(string $userId): UnencryptedToken
     {
         return $this->generateToken($userId, $this->dateTime->modify('+1 hour'));
     }
@@ -89,11 +89,11 @@ class JwtService
     /**
      * Creates and returns as string new JWT refresh token.
      *
-     * @param int $userId
+     * @param string $userId
      *
      * @return UnencryptedToken
      */
-    private function generateRefreshToken(int $userId): UnencryptedToken
+    private function generateRefreshToken(string $userId): UnencryptedToken
     {
         return $this->generateToken($userId, $this->dateTime->modify('+7 days'));
     }
@@ -101,12 +101,12 @@ class JwtService
     /**
      * Methods which generates generic JWT token.
      *
-     * @param int $userId
+     * @param string $userId
      * @param DateTimeInterface $expiresAt
      *
      * @return UnencryptedToken
      */
-    private function generateToken(int $userId, DateTimeInterface $expiresAt): UnencryptedToken
+    private function generateToken(string $userId, DateTimeInterface $expiresAt): UnencryptedToken
     {
         return $this->builder
             ->issuedBy(env('APP_URL'))

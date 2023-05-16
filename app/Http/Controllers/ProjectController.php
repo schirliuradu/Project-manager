@@ -21,8 +21,26 @@ class ProjectController extends Controller
     {
     }
 
-
     /**
+     * @OA\Get(
+     *     path="/api/projects",
+     *     operationId="getProjects",
+     *     tags={"Projects"},
+     *     summary="Get project list",
+     *     description="Endpoint which retrieves list of paginated projects.",
+     *     security={{"bearerAuth": {}}},
+     *
+     *     @OA\Parameter(ref="#/components/parameters/pageParameter"),
+     *     @OA\Parameter(ref="#/components/parameters/perPageParameter"),
+     *     @OA\Parameter(ref="#/components/parameters/sortByParameter"),
+     *     @OA\Parameter(ref="#/components/parameters/withClosedParameter"),
+     *     @OA\Parameter(ref="#/components/parameters/onlyClosedParameter"),
+     *
+     *     @OA\Response(response="200", description="Success"),
+     *     @OA\Response(response="422", description="Unprocessable Content."),
+     *     @OA\Response(response="404", description="Resource not found.")
+     * )
+     *
      * @param GetProjectsRequest $request
      *
      * @return JsonResponse
