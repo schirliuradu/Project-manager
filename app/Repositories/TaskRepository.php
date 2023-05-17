@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Exceptions\TaskNotFoundException;
+use App\Factories\SearchQueryBuilderFactory;
 use App\Helpers\Formatters\PaginationFormatter;
 use App\Http\Requests\AddTaskToProjectRequest;
 use App\Http\Requests\GetProjectTasksRequest;
@@ -14,19 +15,19 @@ use Illuminate\Support\Str;
 
 class TaskRepository
 {
-    use SearchTrait;
-
     /**
      * User repository class constructor.
      *
      * @param Task $task
      * @param PaginationFormatter $paginationFormatter
      * @param TaskFactory $taskFactory
+     * @param SearchQueryBuilderFactory $searchQueryBuilderFactory
      */
     public function __construct(
-        protected Task                $task,
-        protected PaginationFormatter $paginationFormatter,
-        protected TaskFactory      $taskFactory
+        protected Task                        $task,
+        protected PaginationFormatter         $paginationFormatter,
+        protected TaskFactory                 $taskFactory,
+        protected SearchQueryBuilderFactory $searchQueryBuilderFactory
     ) {
     }
 
@@ -63,13 +64,10 @@ class TaskRepository
     {
         $query = $this->task->query();
 
-        $query->where('project_id', '=', $projectId);
-
-        // handle STATUS filters
-        $this->bindStatusFilterLogic($request, $query);
-
-        // handle sorting
-        $this->bindSortingFilterLogic($request, $query);
+        $this->searchQueryBuilderFactory->create($query)
+            ->withProject($projectId)
+            ->withStatus($request)
+            ->withSorting($request);
 
         $paginationResult = $query->paginate(
             (int)$request->input('perPage') ?? 20,

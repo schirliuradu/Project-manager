@@ -2,6 +2,14 @@
 
 namespace App\Models\Enums;
 
+/**
+ * @OA\Schema(
+ *     schema="StatusEnum",
+ *     type="string",
+ *     enum={"open", "blocked", "closed"},
+ *     description="Status enum values: open, blocked, closed"
+ * )
+ */
 enum Status: string
 {
     case OPEN = 'open';

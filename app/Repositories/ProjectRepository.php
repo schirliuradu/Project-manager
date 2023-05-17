@@ -3,6 +3,7 @@
 namespace App\Repositories;
 
 use App\Exceptions\ProjectNotFoundException;
+use App\Factories\SearchQueryBuilderFactory;
 use App\Helpers\Formatters\PaginationFormatter;
 use App\Http\Requests\AddProjectRequest;
 use App\Http\Requests\GetProjectsRequest;
@@ -14,19 +15,19 @@ use Illuminate\Support\Str;
 
 class ProjectRepository
 {
-    use SearchTrait;
-
     /**
      * User repository class constructor.
      *
      * @param Project $project
      * @param PaginationFormatter $paginationFormatter
      * @param ProjectFactory $projectFactory
+     * @param SearchQueryBuilderFactory $searchQueryBuilderFactory
      */
     public function __construct(
         protected Project             $project,
         protected PaginationFormatter $paginationFormatter,
-        protected ProjectFactory $projectFactory
+        protected ProjectFactory $projectFactory,
+        protected SearchQueryBuilderFactory $searchQueryBuilderFactory
     )
     {
     }
@@ -123,11 +124,9 @@ class ProjectRepository
     {
         $query = $this->project->query();
 
-        // handle STATUS filters
-        $this->bindStatusFilterLogic($request, $query);
-
-        // handle sorting
-        $this->bindSortingFilterLogic($request, $query);
+        $this->searchQueryBuilderFactory->create($query)
+            ->withStatus($request)
+            ->withSorting($request);
 
         $paginationResult = $query->paginate(
             (int)$request->input('perPage') ?? 20,

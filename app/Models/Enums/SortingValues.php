@@ -2,6 +2,13 @@
 
 namespace App\Models\Enums;
 
+/**
+ * @OA\Schema(
+ *     schema="SortingValues",
+ *     type="string",
+ *     enum={"alpha_desc", "alpha_asc", "create", "update"}
+ * )
+ */
 enum SortingValues: string
 {
     case ALPHADESC = 'alpha_desc';

@@ -8,6 +8,43 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @OA\Schema(
+ *     schema="Project",
+ *     @OA\Property(
+ *         property="id",
+ *         type="string",
+ *         example="0056844c-afa2-406b-9989-d49c7e79bc3a"
+ *     ),
+ *     @OA\Property(
+ *         property="slug",
+ *         type="string",
+ *         example="0056844c-afa2-406b-9989-d49c7e79bc3a-lorem-ipsum"
+ *     ),
+ *     @OA\Property(
+ *         property="title",
+ *         type="string",
+ *         example="Lorem ipsum"
+ *     ),
+ *     @OA\Property(
+ *         property="description",
+ *         type="string",
+ *         example="Dolor sit amet consecteur"
+ *     ),
+ *     @OA\Property(property="status", ref="#/components/schemas/StatusEnum"),
+ *     @OA\Property(
+ *         property="tasks_count",
+ *         type="string",
+ *         example="Total tasks count, both closed and open"
+ *     ),
+ *     @OA\Property(
+ *         property="completed_tasks_count",
+ *         type="string",
+ *         example="Completed tasks count."
+ *     )
+ * )
+ *
+ */
 class Project extends Model
 {
     use HasFactory;

@@ -36,9 +36,21 @@ class ProjectController extends Controller
      *     @OA\Parameter(ref="#/components/parameters/withClosedParameter"),
      *     @OA\Parameter(ref="#/components/parameters/onlyClosedParameter"),
      *
-     *     @OA\Response(response="200", description="Success"),
-     *     @OA\Response(response="422", description="Unprocessable Content."),
-     *     @OA\Response(response="404", description="Resource not found.")
+     *     @OA\Response(
+     *         response="200",
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/Project")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response="401", description="Unauthorized"),
+     *     @OA\Response(response="404", description="Resource not found."),
+     *     @OA\Response(response="422", description="Unprocessable Content.")
      * )
      *
      * @param GetProjectsRequest $request

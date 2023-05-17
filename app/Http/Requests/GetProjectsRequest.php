@@ -10,6 +10,66 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
 
+/**
+ *
+ * @OA\Parameter(
+ *     parameter="pageParameter",
+ *     name="page",
+ *     description="Page",
+ *     required=true,
+ *     in="query",
+ *     @OA\Schema(
+ *         type="integer"
+ *     )
+ * ),
+ *
+ * @OA\Parameter(
+ *     parameter="perPageParameter",
+ *     name="perPage",
+ *     description="Per page items",
+ *     required=true,
+ *     in="query",
+ *     @OA\Schema(
+ *         type="integer"
+ *     )
+ * ),
+ *
+ * @OA\Parameter(
+ *     parameter="sortByParameter",
+ *     name="sortBy",
+ *     description="Results sorting options.",
+ *     required=true,
+ *     in="query",
+ *     @OA\Schema(
+ *         type="string",
+ *         enum={"alpha_desc", "alpha_asc", "create", "update"}
+ *     )
+ * ),
+ *
+ * @OA\Parameter(
+ *     parameter="withClosedParameter",
+ *     name="withClosed",
+ *     description="Parameter through which require both open and closed projects.",
+ *     required=false,
+ *     in="query",
+ *     @OA\Schema(
+ *         type="integer",
+ *         enum={0, 1}
+ *     )
+ * ),
+ *
+ * @OA\Parameter(
+ *     parameter="onlyClosedParameter",
+ *     name="onlyClosed",
+ *     description="Parameter through which require only closed projects.",
+ *     required=false,
+ *     in="query",
+ *     @OA\Schema(
+ *         type="integer",
+ *         enum={0, 1}
+ *     )
+ * )
+ */
 class GetProjectsRequest extends FormRequest
 {
     /**
