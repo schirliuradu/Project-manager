@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Http\Controllers;
 
+use App\Models\Enums\Status;
 use App\Models\Project;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
@@ -117,7 +118,7 @@ class ProjectControllerTest extends TestCase
         // Make a GET request to the '/api/projects/id' endpoint with bearer
         $response = $this->authAndGet("/api/projects/{$fakeProjectId}");
 
-        $response->assertStatus(404);
+        $response->assertNotFound();
     }
 
     /**
@@ -211,7 +212,7 @@ class ProjectControllerTest extends TestCase
      */
     public function update_project_should_return_unauthorized_if_no_bearer_was_passed(): void
     {
-        // Make a POST request to the '/api/projects' endpoint without authentication
+        // Make a PATCH request to the '/api/projects' endpoint without authentication
         $response = $this->patch('/api/projects/fake_uuid', []);
 
         // Assert that the request is unauthorized (401 status code)
@@ -281,5 +282,75 @@ class ProjectControllerTest extends TestCase
         $jsonResponse = $response->json();
         $this->assertEquals($fakePostData['title'], $jsonResponse['data']['title']);
         $this->assertEquals($fakePostData['description'], $jsonResponse['data']['description']);
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectStatus
+     */
+    public function update_project_status_should_return_unauthorized_if_no_bearer_was_passed(): void
+    {
+        // Make a PATCH request to the '/api/projects' endpoint without authentication
+        $response = $this->patch('/api/projects/fake_uuid/open', []);
+
+        // Assert that the request is unauthorized (401 status code)
+        $response->assertUnauthorized();
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectStatus
+     */
+    public function update_project_status_should_return_not_found_status_if_project_does_not_exist(): void
+    {
+        $fakeProjectId = Str::uuid();
+
+        $response = $this->authAndPatch("/api/projects/{$fakeProjectId}/open");
+
+        // Assert that the request is unauthorized (401 status code)
+        $response->assertNotFound();
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectStatus
+     */
+    public function update_project_status_should_validate_action_value(): void
+    {
+        $fakeProjectId = Str::uuid();
+        $response = $this->authAndPatch("/api/projects/{$fakeProjectId}/fake");
+        $response->assertStatus(422);
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectStatus
+     */
+    public function update_project_status_should_return_no_content_response_if_status_was_updated(): void
+    {
+        $this->refreshDatabase();
+
+        $project = Project::factory()->create();
+        $project->status = Status::OPEN->value;
+
+        $response = $this->authAndPatch("/api/projects/{$project->id}/close");
+
+        $response->assertStatus(204);
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectStatus
+     */
+    public function update_project_status_should_bad_request_if_trying_to_reopen_a_closed_project(): void
+    {
+        $this->refreshDatabase();
+
+        $project = Project::factory()->create();
+        $project->status = Status::CLOSED->value;
+
+        $response = $this->authAndPatch("/api/projects/{$project->id}/open");
+
+        $response->assertStatus(400);
     }
 }

@@ -6,10 +6,12 @@ use App\Exceptions\ProjectNotFoundException;
 use App\Http\Requests\AddProjectRequest;
 use App\Http\Requests\GetProjectsRequest;
 use App\Http\Requests\UpdateProjectRequest;
+use App\Models\Enums\Status;
 use App\Models\Project;
 use App\Repositories\ProjectRepository;
 use App\Services\ProjectService;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 /**
  * @coversDefaultClass \App\Services\ProjectService
@@ -25,6 +27,20 @@ class ProjectServiceTest extends TestCase
 
         $this->projectRepositoryMock = \Mockery::mock(ProjectRepository::class);
         $this->service = new ProjectService($this->projectRepositoryMock);
+    }
+
+    /**
+     * Tell mockery to count everything as assertion, to test flows and avoid risky tests
+     */
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        if ($container = \Mockery::getContainer()) {
+            $this->addToAssertionCount($container->mockery_getExpectationCount());
+        }
+
+        \Mockery::close();
     }
 
     /**
@@ -152,5 +168,112 @@ class ProjectServiceTest extends TestCase
         $this->assertEquals([
             'data' => $fakeProjectArray
         ], $this->service->updateProject($fakeRequestMock, 'fake_uuid'));
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectStatus
+     */
+    public function update_project_status_should_bubble_up_project_not_found_exception()
+    {
+        $this->projectRepositoryMock->shouldReceive('find')
+            ->once()
+            ->with('fake_uuid')
+            ->andThrow(ProjectNotFoundException::class);
+
+        $this->expectException(ProjectNotFoundException::class);
+        $this->service->updateProjectStatus('fake_uuid', Status::OPEN->value);
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectStatus
+     */
+    public function update_project_status_should_throw_bad_request_exception_if_try_to_open_closed_project()
+    {
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeProjectMock->shouldReceive('getAttribute')
+            ->once()
+            ->andReturn(Status::CLOSED->value);
+
+        $this->projectRepositoryMock->shouldReceive('find')
+            ->once()
+            ->with('fake_uuid')
+            ->andReturn($fakeProjectMock);
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionMessage('Bad Request');
+
+        $this->service->updateProjectStatus('fake_uuid', Status::OPEN->value);
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectStatus
+     */
+    public function update_project_status_should_open_project_correctly()
+    {
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeProjectMock->shouldReceive('getAttribute')
+            ->once()
+            ->andReturn(Status::OPEN->value);
+
+        $this->projectRepositoryMock->shouldReceive('find')
+            ->once()
+            ->with('fake_uuid')
+            ->andReturn($fakeProjectMock);
+
+        $this->projectRepositoryMock->shouldReceive('openProject')
+            ->once()
+            ->with($fakeProjectMock);
+
+        $this->service->updateProjectStatus('fake_uuid', Status::OPEN->value);
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectStatus
+     */
+    public function update_project_status_should_throw_bad_request_exception_if_project_still_has_opened_tasks()
+    {
+        $fakeProjectMock = \Mockery::mock(Project::class);
+
+        $this->projectRepositoryMock->shouldReceive('find')
+            ->once()
+            ->with('fake_uuid')
+            ->andReturn($fakeProjectMock);
+
+        $this->projectRepositoryMock->shouldReceive('hasOpenedTasks')
+            ->once()
+            ->andReturnTrue();
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionMessage('Bad Request');
+
+        $this->service->updateProjectStatus('fake_uuid', Status::CLOSED->value);
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectStatus
+     */
+    public function update_project_status_should_close_project_correctly()
+    {
+        $fakeProjectMock = \Mockery::mock(Project::class);
+
+        $this->projectRepositoryMock->shouldReceive('find')
+            ->once()
+            ->with('fake_uuid')
+            ->andReturn($fakeProjectMock);
+
+        $this->projectRepositoryMock->shouldReceive('closeProject')
+            ->once()
+            ->with($fakeProjectMock);
+
+        $this->projectRepositoryMock->shouldReceive('hasOpenedTasks')
+            ->once()
+            ->andReturnFalse();
+
+        $this->service->updateProjectStatus('fake_uuid', Status::CLOSED->value);
     }
 }

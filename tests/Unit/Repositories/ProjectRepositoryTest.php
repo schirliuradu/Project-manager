@@ -14,6 +14,7 @@ use App\Repositories\Builders\SearchQueryBuilder;
 use App\Repositories\ProjectRepository;
 use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Pagination\LengthAwarePaginator;
 use PHPUnit\Framework\TestCase;
 
@@ -249,5 +250,60 @@ class ProjectRepositoryTest extends TestCase
             ->andReturnSelf();
 
         $this->repo->updateProject($fakeProjectMock, $fakeRequestMock);
+    }
+
+    /**
+     * @test
+     * @covers ::openProject
+     */
+    public function open_project_should_set_status_property_to_open_correctly()
+    {
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeProjectMock->shouldReceive('setAttribute')
+            ->once()
+            ->with('status', Status::OPEN->value)
+            ->andReturnSelf();
+        $fakeProjectMock->shouldReceive('save')
+            ->once()
+            ->andReturnSelf();
+
+        $this->assertEquals($fakeProjectMock, $this->repo->openProject($fakeProjectMock));
+    }
+
+    /**
+     * @test
+     * @covers ::closeProject
+     */
+    public function close_project_should_set_status_property_to_closed_correctly()
+    {
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeProjectMock->shouldReceive('setAttribute')
+            ->once()
+            ->with('status', Status::CLOSED->value)
+            ->andReturnSelf();
+        $fakeProjectMock->shouldReceive('save')
+            ->once()
+            ->andReturnSelf();
+
+        $this->assertEquals($fakeProjectMock, $this->repo->closeProject($fakeProjectMock));
+    }
+
+    /**
+     * @test
+     * @covers ::hasOpenedTasks
+     */
+    public function has_opened_tasks_should_return_true_or_false()
+    {
+        $openedTasksMock = \Mockery::mock(HasMany::class);
+        $openedTasksMock->shouldReceive('count')
+            ->once()
+            ->andReturn(3);
+
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeProjectMock->shouldReceive('openedTasks')
+            ->once()
+            ->andReturn($openedTasksMock);
+
+        $this->assertTrue($this->repo->hasOpenedTasks($fakeProjectMock));
     }
 }

@@ -10,6 +10,19 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
 
+/**
+ * @OA\Parameter(
+ *     parameter="action",
+ *     name="action",
+ *     description="Project status update action",
+ *     required=true,
+ *     in="path",
+ *     @OA\Schema(
+ *         type="string",
+ *         enum={"open", "close"}
+ *     )
+ * )
+ */
 class UpdateProjectStatusRequest extends FormRequest
 {
     /**

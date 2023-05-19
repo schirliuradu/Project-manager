@@ -168,6 +168,7 @@ class ProjectController extends Controller
      *         )
      *     ),
      *     @OA\Response(response="401", description="Unauthorized"),
+     *     @OA\Response(response="404", description="Resource not found."),
      *     @OA\Response(response="422", description="Unprocessable Content.")
      * )
      *
@@ -183,6 +184,27 @@ class ProjectController extends Controller
     }
 
     /**
+     * @OA\Patch(
+     *     path="/api/projects/{project}/{action}",
+     *     operationId="updateProjectStatus",
+     *     tags={"Projects"},
+     *     summary="Update existing project status.",
+     *     description="Endpoint which updates already existing project status.",
+     *     security={{"bearerAuth": {}}},
+     *
+     *     @OA\Parameter(ref="#/components/parameters/project"),
+     *     @OA\Parameter(ref="#/components/parameters/action"),
+     *
+     *     @OA\Response(
+     *         response="204",
+     *         description="No Content"
+     *     ),
+     *     @OA\Response(response="400", description="Bad request."),
+     *     @OA\Response(response="401", description="Unauthorized."),
+     *     @OA\Response(response="404", description="Resource not found."),
+     *     @OA\Response(response="422", description="Unprocessable Content.")
+     * )
+     *
      * @param UpdateProjectStatusRequest $request
      * @param string $project
      * @param string $status
