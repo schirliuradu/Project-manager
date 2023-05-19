@@ -140,6 +140,37 @@ class ProjectController extends Controller
     }
 
     /**
+     * @OA\Patch(
+     *     path="/api/projects/{project}",
+     *     operationId="updateProject",
+     *     tags={"Projects"},
+     *     summary="Update existing project.",
+     *     description="Endpoint which updates already existing project.",
+     *     security={{"bearerAuth": {}}},
+     *
+     *     @OA\Parameter(ref="#/components/parameters/project"),
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Update Project Request",
+     *         @OA\JsonContent(ref="#/components/schemas/UpdateProjectRequest")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response="200",
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 ref="#/components/schemas/Project"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response="401", description="Unauthorized"),
+     *     @OA\Response(response="422", description="Unprocessable Content.")
+     * )
+     *
      * @param UpdateProjectRequest $request
      * @param string $project
      *

@@ -5,6 +5,7 @@ namespace Tests\Unit\Services;
 use App\Exceptions\ProjectNotFoundException;
 use App\Http\Requests\AddProjectRequest;
 use App\Http\Requests\GetProjectsRequest;
+use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Project;
 use App\Repositories\ProjectRepository;
 use App\Services\ProjectService;
@@ -109,4 +110,47 @@ class ProjectServiceTest extends TestCase
         ], $this->service->addProject($fakeRequestMock));
     }
 
+    /**
+     * @test
+     * @covers ::updateProject
+     */
+    public function update_project_should_bubble_up_project_not_found_exception_if_thrown()
+    {
+        $this->projectRepositoryMock->shouldReceive('find')
+            ->once()
+            ->with('fake_uuid')
+            ->andThrow(ProjectNotFoundException::class);
+
+        $this->expectException(ProjectNotFoundException::class);
+        $this->service->updateProject(\Mockery::mock(UpdateProjectRequest::class), 'fake_uuid');
+    }
+
+    /**
+     * @test
+     * @covers ::updateProject
+     */
+    public function update_project_should_return_updated_project_as_array()
+    {
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeRequestMock = \Mockery::mock(UpdateProjectRequest::class);
+        $fakeProjectArray = ['fake_project'];
+
+        $this->projectRepositoryMock->shouldReceive('find')
+            ->once()
+            ->with('fake_uuid')
+            ->andReturn($fakeProjectMock);
+
+        $this->projectRepositoryMock->shouldReceive('updateProject')
+            ->once()
+            ->with($fakeProjectMock, $fakeRequestMock)
+            ->andReturn($fakeProjectMock);
+
+        $fakeProjectMock->shouldReceive('toArray')
+            ->once()
+            ->andReturn($fakeProjectArray);
+
+        $this->assertEquals([
+            'data' => $fakeProjectArray
+        ], $this->service->updateProject($fakeRequestMock, 'fake_uuid'));
+    }
 }

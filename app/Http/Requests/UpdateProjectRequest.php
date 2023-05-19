@@ -8,6 +8,15 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * @OA\Schema(
+ *     schema="UpdateProjectRequest",
+ *     type="object",
+ *     required={"project"},
+ *     @OA\Property(property="title", type="string", maxLength=255),
+ *     @OA\Property(property="description", type="string")
+ * )
+ */
 class UpdateProjectRequest extends FormRequest
 {
     /**
@@ -27,8 +36,8 @@ class UpdateProjectRequest extends FormRequest
     {
         return [
             'project' => 'required|uuid',
-            'title' => 'string|max:255',
-            'description' => 'string'
+            'title' => 'string|max:255|required_without_all:description',
+            'description' => 'string|required_without_all:title'
         ];
     }
 

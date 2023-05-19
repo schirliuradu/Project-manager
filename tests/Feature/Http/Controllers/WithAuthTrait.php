@@ -58,4 +58,19 @@ trait WithAuthTrait
             'Authorization' => 'Bearer ' . $this->bearer(),
         ])->post($endpoint, $data);
     }
+
+    /**
+     * @param string $endpoint
+     * @param array $data
+     *
+     * @return TestResponse
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    private function authAndPatch(string $endpoint, array $data): TestResponse
+    {
+        return $this->withHeaders([
+            'Authorization' => 'Bearer ' . $this->bearer(),
+        ])->patch($endpoint, $data);
+    }
 }

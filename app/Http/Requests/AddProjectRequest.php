@@ -12,7 +12,6 @@ use Illuminate\Http\JsonResponse;
  * @OA\Schema(
  *     schema="AddProjectRequest",
  *     type="object",
- *     required={"title", "description"},
  *     @OA\Property(property="title", type="string", maxLength=255),
  *     @OA\Property(property="description", type="string")
  * )

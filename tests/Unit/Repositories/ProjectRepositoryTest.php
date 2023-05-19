@@ -7,6 +7,7 @@ use App\Factories\SearchQueryBuilderFactory;
 use App\Helpers\Formatters\PaginationFormatter;
 use App\Http\Requests\AddProjectRequest;
 use App\Http\Requests\GetProjectsRequest;
+use App\Http\Requests\UpdateProjectRequest;
 use App\Models\Enums\Status;
 use App\Models\Project;
 use App\Repositories\Builders\SearchQueryBuilder;
@@ -43,6 +44,20 @@ class ProjectRepositoryTest extends TestCase
             $this->projectFactoryMock,
             $this->builderFactoryMock
         );
+    }
+
+    /**
+     * Tell mockery to count everything as assertion, to test flows and avoid risky tests
+     */
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        if ($container = \Mockery::getContainer()) {
+            $this->addToAssertionCount($container->mockery_getExpectationCount());
+        }
+
+        \Mockery::close();
     }
 
     /**
@@ -178,5 +193,61 @@ class ProjectRepositoryTest extends TestCase
             ])->andReturn($fakeProjectMock);
 
         $this->assertEquals($fakeProjectMock, $this->repo->addProject($fakeRequestMock));
+    }
+
+    /**
+     * @test
+     * @covers ::updateProject
+     */
+    public function update_project_should_only_update_title_if_set_on_request()
+    {
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeRequestMock = \Mockery::mock(UpdateProjectRequest::class);
+        $fakeRequestMock->shouldReceive('input')
+            ->once()
+            ->with('title')
+            ->andReturn('lorem ipsum updated');
+        $fakeRequestMock->shouldReceive('input')
+            ->once()
+            ->with('description')
+            ->andReturnNull();
+
+        $fakeProjectMock->shouldReceive('setAttribute')
+            ->once()
+            ->with('title', 'lorem ipsum updated');
+
+        $fakeProjectMock->shouldReceive('save')
+            ->once()
+            ->andReturnSelf();
+
+        $this->repo->updateProject($fakeProjectMock, $fakeRequestMock);
+    }
+
+    /**
+     * @test
+     * @covers ::updateProject
+     */
+    public function update_project_should_only_update_description_if_set_on_request()
+    {
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeRequestMock = \Mockery::mock(UpdateProjectRequest::class);
+        $fakeRequestMock->shouldReceive('input')
+            ->once()
+            ->with('title')
+            ->andReturnNull();
+        $fakeRequestMock->shouldReceive('input')
+            ->once()
+            ->with('description')
+            ->andReturn('lorem ipsum description updated');
+
+        $fakeProjectMock->shouldReceive('setAttribute')
+            ->once()
+            ->with('description', 'lorem ipsum description updated');
+
+        $fakeProjectMock->shouldReceive('save')
+            ->once()
+            ->andReturnSelf();
+
+        $this->repo->updateProject($fakeProjectMock, $fakeRequestMock);
     }
 }
