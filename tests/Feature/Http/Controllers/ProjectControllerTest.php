@@ -113,7 +113,7 @@ class ProjectControllerTest extends TestCase
         $this->refreshDatabase();
         $project = Project::factory()->create();
 
-        // Make a GET request to the '/api/projects' endpoint with bearer
+        // Make a GET request to the '/api/projects/id' endpoint with bearer
         $response = $this->authAndGet("/api/projects/{$project->id}");
 
         $response->assertStatus(200);
@@ -129,5 +129,64 @@ class ProjectControllerTest extends TestCase
                 'completed_tasks_count' => $project->completed_tasks_count,
             ]
         ], $response->json());
+    }
+
+    /**
+     * @test
+     * @covers ::addProject
+     */
+    public function add_project_should_return_unauthorized_if_no_bearer_was_passed(): void
+    {
+        // Make a POST request to the '/api/projects' endpoint without authentication
+        $response = $this->post('/api/projects', []);
+
+        // Assert that the request is unauthorized (401 status code)
+        $response->assertUnauthorized();
+    }
+
+    /**
+     * @test
+     * @covers ::addProject
+     */
+    public function add_project_should_return_input_validation_error_if_input_is_not_ok(): void
+    {
+        // Make a GET request to the '/api/projects' endpoint with bearer
+        $response = $this->authAndPost('/api/projects', []);
+        $arrayResponse = $response->json();
+
+        $this->assertArrayHasKey('errors', $arrayResponse);
+        $this->assertEquals(['title', 'description'], array_keys($arrayResponse['errors']));
+
+        // Assert the response status code is 422
+        $response->assertStatus(422);
+    }
+
+    /**
+     * @test
+     * @covers ::addProject
+     */
+    public function add_project_should_return_correctly_formatted_response_data(): void
+    {
+        $fakePostData = [
+            'title' => 'lorem ipsum',
+            'description' => 'dolor sit amet'
+        ];
+
+        // Make a POST request to the '/api/projects' endpoint without authentication
+        $response = $this->authAndPost('/api/projects', $fakePostData);
+        $response->assertStatus(200);
+
+        // Assert the response structure and content
+        $response->assertJsonStructure([
+            'data' => [
+                'id',
+                'slug',
+                'title',
+                'description',
+                'status',
+                'tasks_count',
+                'completed_tasks_count',
+            ]
+        ]);
     }
 }

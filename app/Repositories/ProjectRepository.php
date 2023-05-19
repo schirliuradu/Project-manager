@@ -156,7 +156,7 @@ class ProjectRepository
             'status' => Status::OPEN->value,
         ]);
 
-        $project->setAttribute('slug', $project->getAttribute('id') . '-' . Str::slug($projectTitle));
+        $project->setAttribute('slug',  Str::slug($project->getAttribute('id') . '-' . $projectTitle));
         $project->save();
 
         return $project;

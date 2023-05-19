@@ -5,6 +5,8 @@ namespace Tests\Feature\Http\Controllers;
 use App\Models\User;
 use App\Services\JwtService;
 use Illuminate\Testing\TestResponse;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 
 trait WithAuthTrait
 {
@@ -12,8 +14,8 @@ trait WithAuthTrait
      * Helper method.
      *
      * @return string
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     private function bearer(): string
     {
@@ -32,13 +34,28 @@ trait WithAuthTrait
      * @param string $endpoint
      *
      * @return TestResponse
-     * @throws \Psr\Container\ContainerExceptionInterface
-     * @throws \Psr\Container\NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
      */
     private function authAndGet(string $endpoint): TestResponse
     {
         return $this->withHeaders([
             'Authorization' => 'Bearer ' . $this->bearer(),
         ])->get($endpoint);
+    }
+
+    /**
+     * @param string $endpoint
+     * @param array $data
+     *
+     * @return TestResponse
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    private function authAndPost(string $endpoint, array $data): TestResponse
+    {
+        return $this->withHeaders([
+            'Authorization' => 'Bearer ' . $this->bearer(),
+        ])->post($endpoint, $data);
     }
 }

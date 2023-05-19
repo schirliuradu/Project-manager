@@ -5,7 +5,9 @@ namespace Tests\Unit\Repositories;
 use App\Exceptions\ProjectNotFoundException;
 use App\Factories\SearchQueryBuilderFactory;
 use App\Helpers\Formatters\PaginationFormatter;
+use App\Http\Requests\AddProjectRequest;
 use App\Http\Requests\GetProjectsRequest;
+use App\Models\Enums\Status;
 use App\Models\Project;
 use App\Repositories\Builders\SearchQueryBuilder;
 use App\Repositories\ProjectRepository;
@@ -137,5 +139,44 @@ class ProjectRepositoryTest extends TestCase
         $this->expectException(ProjectNotFoundException::class);
 
         $this->repo->find('fake_uuid');
+    }
+
+    /**
+     * @test
+     * @covers ::addProject
+     */
+    public function add_project_should_create_new_project_model_and_save_it_with_correct_param_values(): void
+    {
+        $fakeRequestMock = \Mockery::mock(AddProjectRequest::class);
+        $fakeRequestMock->shouldReceive('input')
+            ->once()
+            ->with('title')
+            ->andReturns('Lorem ipsum', );
+        $fakeRequestMock->shouldReceive('input')
+            ->once()
+            ->with('description')
+            ->andReturns('dolor sit amet');
+
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeProjectMock->shouldReceive('getAttribute')
+            ->once()
+            ->with('id')
+            ->andReturn('fake-uuid');
+        $fakeProjectMock->shouldReceive('setAttribute')
+            ->once()
+            ->with('slug', 'fake-uuid-lorem-ipsum');
+        $fakeProjectMock->shouldReceive('save')
+            ->once()
+            ->andReturnSelf();
+
+        $this->projectFactoryMock->shouldReceive('create')
+            ->once()
+            ->with([
+                'title' => 'Lorem ipsum',
+                'description' => 'dolor sit amet',
+                'status' => Status::OPEN->value
+            ])->andReturn($fakeProjectMock);
+
+        $this->assertEquals($fakeProjectMock, $this->repo->addProject($fakeRequestMock));
     }
 }

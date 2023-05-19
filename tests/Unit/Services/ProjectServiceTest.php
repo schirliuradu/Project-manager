@@ -3,6 +3,7 @@
 namespace Tests\Unit\Services;
 
 use App\Exceptions\ProjectNotFoundException;
+use App\Http\Requests\AddProjectRequest;
 use App\Http\Requests\GetProjectsRequest;
 use App\Models\Project;
 use App\Repositories\ProjectRepository;
@@ -83,4 +84,29 @@ class ProjectServiceTest extends TestCase
 
         $this->service->getProject('fake_uuid');
     }
+
+    /**
+     * @test
+     * @covers ::addProject
+     */
+    public function add_project_should_insert_new_post_and_return_data_returned_post_as_array(): void
+    {
+        $fakeRequestMock = \Mockery::mock(AddProjectRequest::class);
+
+        $fakeProjectArray = ['fake_project'];
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeProjectMock->shouldReceive('toArray')
+            ->once()
+            ->andReturn($fakeProjectArray);
+
+        $this->projectRepositoryMock->shouldReceive('addProject')
+            ->once()
+            ->with($fakeRequestMock)
+            ->andReturn($fakeProjectMock);
+
+        $this->assertEquals([
+            'data' => $fakeProjectArray
+        ], $this->service->addProject($fakeRequestMock));
+    }
+
 }

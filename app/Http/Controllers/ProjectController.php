@@ -101,6 +101,35 @@ class ProjectController extends Controller
     }
 
     /**
+     * @OA\Post(
+     *     path="/api/projects",
+     *     operationId="addProject",
+     *     tags={"Projects"},
+     *     summary="Add new project.",
+     *     description="Endpoint which adds new project.",
+     *     security={{"bearerAuth": {}}},
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Add Project Request",
+     *         @OA\JsonContent(ref="#/components/schemas/AddProjectRequest")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response="200",
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 ref="#/components/schemas/Project"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response="401", description="Unauthorized"),
+     *     @OA\Response(response="422", description="Unprocessable Content.")
+     * )
+     *
      * @param AddProjectRequest $request
      *
      * @return JsonResponse
