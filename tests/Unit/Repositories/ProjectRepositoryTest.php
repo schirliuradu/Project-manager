@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Repositories;
 
+use App\Exceptions\ProjectNotFoundException;
 use App\Factories\SearchQueryBuilderFactory;
 use App\Helpers\Formatters\PaginationFormatter;
 use App\Http\Requests\GetProjectsRequest;
@@ -90,5 +91,51 @@ class ProjectRepositoryTest extends TestCase
             ['fake_items'],
             ['fake_formatted_pagination_array'],
         ], $this->repo->searchProjects($requestMock));
+    }
+
+    /**
+     * @test
+     * @covers ::find
+     */
+    public function should_return_found_project_if_there_is_one_for_given_id(): void
+    {
+        $fakeProjectMock = \Mockery::mock(Project::class);
+
+        $queryMock = \Mockery::mock(Builder::class);
+        $this->modelMock->shouldReceive('query')->once()->andReturn($queryMock);
+
+        $queryMock->shouldReceive('where')
+            ->once()
+            ->with('id', '=', 'fake_uuid')
+            ->andReturnSelf();
+
+        $queryMock->shouldReceive('first')
+            ->once()
+            ->andReturn($fakeProjectMock);
+
+        $this->assertEquals($fakeProjectMock, $this->repo->find('fake_uuid'));
+    }
+
+    /**
+     * @test
+     * @covers ::find
+     */
+    public function should_throw_custom_exception_if_there_is_no_project_for_given_id(): void
+    {
+        $queryMock = \Mockery::mock(Builder::class);
+        $this->modelMock->shouldReceive('query')->once()->andReturn($queryMock);
+
+        $queryMock->shouldReceive('where')
+            ->once()
+            ->with('id', '=', 'fake_uuid')
+            ->andReturnSelf();
+
+        $queryMock->shouldReceive('first')
+            ->once()
+            ->andThrow(ProjectNotFoundException::class);
+
+        $this->expectException(ProjectNotFoundException::class);
+
+        $this->repo->find('fake_uuid');
     }
 }

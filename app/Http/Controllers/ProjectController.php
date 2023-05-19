@@ -63,6 +63,32 @@ class ProjectController extends Controller
     }
 
     /**
+     * @OA\Get(
+     *     path="/api/projects/{project}",
+     *     operationId="getProject",
+     *     tags={"Projects"},
+     *     summary="Get single project by id",
+     *     description="Endpoint which retrieves single project by id..",
+     *     security={{"bearerAuth": {}}},
+     *
+     *     @OA\Parameter(ref="#/components/parameters/project"),
+     *
+     *     @OA\Response(
+     *         response="200",
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 ref="#/components/schemas/Project"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response="401", description="Unauthorized"),
+     *     @OA\Response(response="404", description="Resource not found."),
+     *     @OA\Response(response="422", description="Unprocessable Content.")
+     * )
+     *
      * @param GetProjectRequest $request
      * @param string $project
      *

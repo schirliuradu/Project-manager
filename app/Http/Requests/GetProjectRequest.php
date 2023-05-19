@@ -8,6 +8,18 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * @OA\Parameter(
+ *     parameter="project",
+ *     name="project",
+ *     description="Project id",
+ *     required=true,
+ *     in="path",
+ *     @OA\Schema(
+ *         type="string"
+ *     )
+ * )
+ */
 class GetProjectRequest extends FormRequest
 {
     /**
