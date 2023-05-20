@@ -35,9 +35,14 @@ class TaskService
      * @param string $id
      *
      * @return array
+     * @throws ProjectNotFoundException
      */
     public function getProjectTasks(GetProjectTasksRequest $request, string $id): array
     {
+        // project id validation to check either exists or not
+        // throws auto exception and blocks the flow
+        $this->projectRepo->find($id);
+
         [$data, $meta] = $this->repo->searchProjectTasks($request, $id);
 
         return [

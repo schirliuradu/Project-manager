@@ -248,11 +248,75 @@
                     "204": {
                         "description": "No Content"
                     },
+                    "400": {
+                        "description": "Bad request."
+                    },
                     "401": {
-                        "description": "Unauthorized"
+                        "description": "Unauthorized."
                     },
                     "404": {
                         "description": "Resource not found."
+                    },
+                    "422": {
+                        "description": "Unprocessable Content."
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/projects/{project}/tasks": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get project task list",
+                "description": "Endpoint which retrieves list of paginated tasks related to given project.",
+                "operationId": "getProjectTasks",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/project"
+                    },
+                    {
+                        "$ref": "#/components/parameters/pageParameter"
+                    },
+                    {
+                        "$ref": "#/components/parameters/perPageParameter"
+                    },
+                    {
+                        "$ref": "#/components/parameters/sortByParameter"
+                    },
+                    {
+                        "$ref": "#/components/parameters/withClosedParameter"
+                    },
+                    {
+                        "$ref": "#/components/parameters/onlyClosedParameter"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/Task"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized"
                     },
                     "422": {
                         "description": "Unprocessable Content."
@@ -292,6 +356,29 @@
                 },
                 "type": "object"
             },
+            "DifficultyEnum": {
+                "description": "Task difficulty..",
+                "type": "string",
+                "enum": [
+                    "1",
+                    "2",
+                    "3",
+                    "5",
+                    "8",
+                    "D",
+                    "T"
+                ]
+            },
+            "PriorityEnum": {
+                "description": "Task priority.",
+                "type": "string",
+                "enum": [
+                    "low",
+                    "medium",
+                    "high",
+                    "very high"
+                ]
+            },
             "SortingValues": {
                 "type": "string",
                 "enum": [
@@ -302,7 +389,7 @@
                 ]
             },
             "StatusEnum": {
-                "description": "Status enum values: open, blocked, closed",
+                "description": "Project status values.",
                 "type": "string",
                 "enum": [
                     "open",
@@ -338,6 +425,56 @@
                     "completed_tasks_count": {
                         "type": "string",
                         "example": "Completed tasks count."
+                    }
+                },
+                "type": "object"
+            },
+            "Task": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "0056844c-afa2-406b-9989-d49c7e79bc3b"
+                    },
+                    "slug": {
+                        "type": "string",
+                        "example": "0056844c-afa2-406b-9989-d49c7e79bc3b-lorem-ipsum"
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Lorem ipsum"
+                    },
+                    "description": {
+                        "type": "string",
+                        "example": "Lorem ipsum description"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/StatusEnum"
+                    },
+                    "priority": {
+                        "$ref": "#/components/schemas/PriorityEnum"
+                    },
+                    "difficulty": {
+                        "$ref": "#/components/schemas/DifficultyEnum"
+                    },
+                    "assignee": {
+                        "$ref": "#/components/schemas/Assignee"
+                    }
+                },
+                "type": "object"
+            },
+            "Assignee": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "0056844c-afa2-406b-9989-d49c7e79bc3a"
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "example": "John"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "example": "Doe"
                     }
                 },
                 "type": "object"

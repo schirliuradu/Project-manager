@@ -7,7 +7,7 @@ namespace App\Models\Enums;
  *     schema="StatusEnum",
  *     type="string",
  *     enum={"open", "blocked", "closed"},
- *     description="Status enum values: open, blocked, closed"
+ *     description="Project status values."
  * )
  */
 enum Status: string

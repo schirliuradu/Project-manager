@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Services;
 
+use App\Exceptions\ExpiredJwtTokenException;
 use App\Services\JwtService;
 use DateTimeImmutable;
 use Lcobucci\JWT\Builder;
@@ -49,6 +50,19 @@ class JwtServiceTest extends TestCase
         );
     }
 
+    /**
+     * Tell mockery to count everything as assertion, to test flows and avoid risky tests
+     */
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        if ($container = \Mockery::getContainer()) {
+            $this->addToAssertionCount($container->mockery_getExpectationCount());
+        }
+
+        \Mockery::close();
+    }
 
     /**
      * @test
@@ -119,16 +133,40 @@ class JwtServiceTest extends TestCase
      * @test
      * @covers ::parseAndValidateToken
      */
-    public function should_follow_correctly_validation_flow_if_there_are_no_violated_constraints_and_bearer_is_valid(): void
+    public function should_throw_custom_exception_if_token_is_expired(): void
     {
+        $fakeToken = \Mockery::mock(Token::class);
+        $fakeToken->shouldReceive('isExpired')
+            ->once()
+            ->andReturnTrue();
+
         $this->parserMock->shouldReceive('parse')
             ->once()
-            ->andReturn(\Mockery::mock(Token::class));
+            ->andReturn($fakeToken);
 
         $this->validatorMock->shouldReceive('assert')->once();
 
-        // count expectations as assertions instead of this @todo - search for mockery settings 
-        $this->expectNotToPerformAssertions();
+        $this->expectException(ExpiredJwtTokenException::class);
+        $this->service->parseAndValidateToken('test.bearer.token');
+    }
+
+    /**
+     * @test
+     * @covers ::parseAndValidateToken
+     */
+    public function should_follow_correctly_validation_flow_if_there_are_no_violated_constraints_and_bearer_is_valid(): void
+    {
+        $fakeToken = \Mockery::mock(Token::class);
+        $fakeToken->shouldReceive('isExpired')
+            ->once()
+            ->andReturnFalse();
+
+        $this->parserMock->shouldReceive('parse')
+            ->once()
+            ->andReturn($fakeToken);
+
+        $this->validatorMock->shouldReceive('assert')->once();
+
         $this->service->parseAndValidateToken('test.bearer.token');
     }
 }

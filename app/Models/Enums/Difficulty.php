@@ -2,6 +2,14 @@
 
 namespace App\Models\Enums;
 
+/**
+ * @OA\Schema(
+ *     schema="DifficultyEnum",
+ *     type="string",
+ *     enum={"1", "2", "3", "5", "8", "D", "T"},
+ *     description="Task difficulty.."
+ * )
+ */
 enum Difficulty: string
 {
     case ONE = '1';

@@ -7,6 +7,20 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @OA\Schema(
+ *     schema="Task",
+ *     @OA\Property(property="id", type="string", example="0056844c-afa2-406b-9989-d49c7e79bc3b"),
+ *     @OA\Property(property="slug", type="string", example="0056844c-afa2-406b-9989-d49c7e79bc3b-lorem-ipsum"),
+ *     @OA\Property(property="title", type="string", example="Lorem ipsum"),
+ *     @OA\Property(property="description", type="string", example="Lorem ipsum description"),
+ *
+ *     @OA\Property(property="status", ref="#/components/schemas/StatusEnum"),
+ *     @OA\Property(property="priority", ref="#/components/schemas/PriorityEnum"),
+ *     @OA\Property(property="difficulty", ref="#/components/schemas/DifficultyEnum"),
+ *     @OA\Property(property="assignee", ref="#/components/schemas/Assignee")
+ * )
+ */
 class Task extends Model
 {
     use HasFactory;
@@ -68,7 +82,7 @@ class Task extends Model
             ...parent::toArray(),
             'assignee' => [
                 'id' => $assignee->getAttribute('id'),
-                'first_nae' => $assignee->getAttribute('first_name'),
+                'first_name' => $assignee->getAttribute('first_name'),
                 'last_name' => $assignee->getAttribute('last_name'),
             ]
         ];

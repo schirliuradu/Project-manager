@@ -19,7 +19,7 @@ class UserRepository
     /**
      * @param string $email
      *
-     * @return User
+     * @return User|null
      */
     public function getUserByEmail(string $email): ?User
     {

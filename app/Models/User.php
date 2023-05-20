@@ -7,6 +7,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * @OA\Schema(
+ *     schema="Assignee",
+ *     @OA\Property(property="id", type="string", example="0056844c-afa2-406b-9989-d49c7e79bc3a"),
+ *     @OA\Property(property="first_name", type="string", example="John"),
+ *     @OA\Property(property="last_name", type="string", example="Doe"),
+ * )
+ */
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;

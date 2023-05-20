@@ -35,8 +35,8 @@ class GetProjectTasksRequest extends FormRequest
                 'required',
                 Rule::in(SortingValues::values())
             ],
-            'withClosed' => 'required|boolean',
-            'onlyClosed' => 'required|boolean',
+            'withClosed' => 'boolean',
+            'onlyClosed' => 'boolean',
         ];
     }
 

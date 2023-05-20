@@ -83,7 +83,7 @@ class JwtService
      */
     private function generateAccessToken(string $userId): UnencryptedToken
     {
-        return $this->generateToken($userId, $this->dateTime->modify('+1 hour'));
+        return $this->generateToken($userId, $this->dateTime->modify('+1 day'));
     }
 
     /**

@@ -23,6 +23,38 @@ class TaskController extends Controller
     }
 
     /**
+     * @OA\Get(
+     *     path="/api/projects/{project}/tasks",
+     *     operationId="getProjectTasks",
+     *     tags={"Tasks"},
+     *     summary="Get project task list",
+     *     description="Endpoint which retrieves list of paginated tasks related to given project.",
+     *     security={{"bearerAuth": {}}},
+     *
+     *     @OA\Parameter(ref="#/components/parameters/project"),
+     *     @OA\Parameter(ref="#/components/parameters/pageParameter"),
+     *     @OA\Parameter(ref="#/components/parameters/perPageParameter"),
+     *     @OA\Parameter(ref="#/components/parameters/sortByParameter"),
+     *     @OA\Parameter(ref="#/components/parameters/withClosedParameter"),
+     *     @OA\Parameter(ref="#/components/parameters/onlyClosedParameter"),
+     *
+     *     @OA\Response(
+     *         response="200",
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 type="array",
+     *                 @OA\Items(ref="#/components/schemas/Task")
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response="401", description="Unauthorized"),
+     *     @OA\Response(response="404", description="Resource not found."),
+     *     @OA\Response(response="422", description="Unprocessable Content.")
+     * )
+     *
      * @param GetProjectTasksRequest $request
      * @param string $project
      *
