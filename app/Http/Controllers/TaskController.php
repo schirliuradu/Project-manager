@@ -152,6 +152,39 @@ class TaskController extends Controller
     }
 
     /**
+     * @OA\Patch(
+     *     path="/api/projects/{project}/tasks/{task}",
+     *     operationId="updateProjectTask",
+     *     tags={"Tasks"},
+     *     summary="Update existing project task.",
+     *     description="Endpoint which updates already existing project task.",
+     *     security={{"bearerAuth": {}}},
+     *
+     *     @OA\Parameter(ref="#/components/parameters/project"),
+     *     @OA\Parameter(ref="#/components/parameters/task"),
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Update Project Task Request",
+     *         @OA\JsonContent(ref="#/components/schemas/UpdateProjectTaskRequest")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response="200",
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 ref="#/components/schemas/Task"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response="401", description="Unauthorized"),
+     *     @OA\Response(response="404", description="Resource not found."),
+     *     @OA\Response(response="422", description="Unprocessable Content.")
+     * )
+     *
      * @param UpdateProjectTaskRequest $request
      * @param string $project
      * @param string $task
@@ -172,14 +205,15 @@ class TaskController extends Controller
      * @param string $action
      *
      * @return Response
+     * @throws ProjectNotFoundException
+     * @throws TaskNotFoundException
      */
     public function updateProjectTaskStatus(
         UpdateProjectTaskStatusRequest $request,
         string $project,
         string $task,
         string $action
-    ): Response
-    {
+    ): Response {
         $this->service->updateProjectTaskStatus($project, $task, $action);
 
         return response()->noContent();

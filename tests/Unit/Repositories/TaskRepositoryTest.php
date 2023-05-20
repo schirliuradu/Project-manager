@@ -7,6 +7,7 @@ use App\Factories\SearchQueryBuilderFactory;
 use App\Helpers\Formatters\PaginationFormatter;
 use App\Http\Requests\AddTaskToProjectRequest;
 use App\Http\Requests\GetProjectTasksRequest;
+use App\Http\Requests\UpdateProjectTaskRequest;
 use App\Models\Enums\Difficulty;
 use App\Models\Enums\Priority;
 use App\Models\Enums\Status;
@@ -214,5 +215,53 @@ class TaskRepositoryTest extends UnitTestCase
             ->andReturn($queryMock);
 
         $this->assertInstanceOf(Task::class, $this->repo->getProjectTask($fakeProjectId, $fakeTaskId));
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTask
+     * @dataProvider updateProjectTaskDataProvider
+     */
+    public function update_project_task_should_update_params_only_if_they_are_set_on_request_object(
+        string $param,
+        string $value
+    ): void {
+        $fakeRequestMock = Mockery::mock(UpdateProjectTaskRequest::class);
+        $fakeRequestMock->shouldReceive('input')
+            ->once()
+            ->with($param)
+            ->andReturn($value);
+
+        $fakeRequestMock->shouldReceive('input')
+            ->times(4)
+            ->andReturnNull();
+
+        $fakeTaskMock = Mockery::mock(Task::class);
+        $fakeTaskMock->shouldReceive('setAttribute')
+            ->once()
+            ->with($param, $value)
+            ->andReturnSelf();
+
+        $fakeTaskMock->shouldReceive('save')
+            ->once()
+            ->andReturnSelf();
+
+        $this->assertInstanceOf(Task::class, $this->repo->updateProjectTask($fakeRequestMock, $fakeTaskMock));
+    }
+
+    /**
+     * Data provider for update project task test cases.
+     *
+     * @return array
+     */
+    public static function updateProjectTaskDataProvider(): array
+    {
+        return [
+            ['title', 'lorem title'],
+            ['description', 'lorem description'],
+            ['assignee', 'lorem assignee'],
+            ['difficulty', 'lorem difficulty'],
+            ['priority', 'lorem priority']
+        ];
     }
 }

@@ -11,6 +11,17 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
 
+/**
+ * @OA\Schema(
+ *     schema="UpdateProjectTaskRequest",
+ *     type="object",
+ *     @OA\Property(property="title", type="string", maxLength=255),
+ *     @OA\Property(property="description", type="string"),
+ *     @OA\Property(property="assignee", type="string", example="0056844c-afa2-406b-9989-d49c7e79bc3a"),
+ *     @OA\Property(property="difficulty", ref="#/components/schemas/DifficultyEnum"),
+ *     @OA\Property(property="priority", ref="#/components/schemas/PriorityEnum")
+ * )
+ */
 class UpdateProjectTaskRequest extends FormRequest
 {
     /**
@@ -31,11 +42,17 @@ class UpdateProjectTaskRequest extends FormRequest
         return [
             'project' => 'required|uuid',
             'task' => 'required|uuid',
-            'title' => 'string|max:255',
-            'description' => 'string',
-            'assignee' => 'uuid',
-            'difficulty' => Rule::in(Difficulty::values()),
-            'priority' => Rule::in(Priority::values()),
+            'title' => 'string|max:255|required_without_all:description, assignee, difficulty, priority',
+            'description' => 'string|required_without_all:title, assignee, difficulty, priority',
+            'assignee' => 'uuid|required_without_all:title, description, difficulty, priority',
+            'difficulty' => [
+                'required_without_all:title, description, assignee, priority',
+                Rule::in(Difficulty::values())
+            ],
+            'priority' => [
+                'required_without_all:title, description, assignee, difficulty',
+                Rule::in(Priority::values())
+            ]
         ];
     }
 

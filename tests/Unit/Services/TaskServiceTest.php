@@ -7,6 +7,7 @@ use App\Exceptions\TaskNotFoundException;
 use App\Http\Requests\AddTaskToProjectRequest;
 use App\Http\Requests\GetProjectTaskRequest;
 use App\Http\Requests\GetProjectTasksRequest;
+use App\Http\Requests\UpdateProjectTaskRequest;
 use App\Models\Enums\Status;
 use App\Models\Project;
 use App\Models\Task;
@@ -263,5 +264,117 @@ class TaskServiceTest extends TestCase
             $fakeProjectId,
             $fakeTaskId
         ));
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTask
+     */
+    public function update_project_task_should_throw_exception_if_project_was_not_found()
+    {
+        $this->projectRepository->shouldReceive('find')
+            ->once()
+            ->with($fakeProjectId = 'fake_project_uuid')
+            ->andThrow(ProjectNotFoundException::class);
+
+        $this->expectException(ProjectNotFoundException::class);
+        $this->service->updateProjectTask(
+            \Mockery::mock(UpdateProjectTaskRequest::class),
+            $fakeProjectId,
+            'fake_task_uuid'
+        );
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTask
+     */
+    public function update_project_task_should_throw_exception_if_task_was_not_found()
+    {
+        $this->projectRepository->shouldReceive('find')
+            ->once()
+            ->with($fakeProjectId = 'fake_project_uuid')
+            ->andReturn(\Mockery::mock(Project::class));
+
+        $this->taskRepository->shouldReceive('getProjectTask')
+            ->once()
+            ->with($fakeProjectId, $fakeTaskId = 'fake_task_uuid')
+            ->andThrow(TaskNotFoundException::class);
+
+        $this->expectException(TaskNotFoundException::class);
+        $this->service->updateProjectTask(
+            \Mockery::mock(UpdateProjectTaskRequest::class),
+            $fakeProjectId,
+            $fakeTaskId
+        );
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTask
+     */
+    public function update_project_task_should_throw_bad_request_exception_if_user_was_not_found()
+    {
+        $fakeRequestMock = \Mockery::mock(UpdateProjectTaskRequest::class);
+        $fakeRequestMock->shouldReceive('input')
+            ->once()
+            ->with('assignee')
+            ->andReturn($fakeUserId = 'fake_user_uuid');
+
+        $this->projectRepository->shouldReceive('find')
+            ->once()
+            ->with($fakeProjectId = 'fake_project_uuid')
+            ->andReturn(\Mockery::mock(Project::class));
+
+        $this->taskRepository->shouldReceive('getProjectTask')
+            ->once()
+            ->with($fakeProjectId, $fakeTaskId = 'fake_task_uuid')
+            ->andReturn(\Mockery::mock(Task::class));
+
+        $this->userRepository->shouldReceive('find')
+            ->once()
+            ->with($fakeUserId)
+            ->andReturnNull();
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionMessage('Bad Request');
+
+        $this->service->updateProjectTask($fakeRequestMock, $fakeProjectId, $fakeTaskId);
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTask
+     */
+    public function update_project_task_should_return_repository_response_formatted_as_wrapped_array()
+    {
+        $fakeRequestMock = \Mockery::mock(UpdateProjectTaskRequest::class);
+        $fakeRequestMock->shouldReceive('input')
+            ->once()
+            ->with('assignee')
+            ->andReturnNull();
+
+        $fakeTaskMock = \Mockery::mock(Task::class);
+        $fakeTaskMock->shouldReceive('toArray')
+            ->once()
+            ->andReturn($fakeTaskArray = ['fake_task_as_array']);
+
+        $this->projectRepository->shouldReceive('find')
+            ->once()
+            ->with($fakeProjectId = 'fake_project_uuid')
+            ->andReturn(\Mockery::mock(Project::class));
+
+        $this->taskRepository->shouldReceive('getProjectTask')
+            ->once()
+            ->with($fakeProjectId, $fakeTaskId = 'fake_task_uuid')
+            ->andReturn($fakeTaskMock);
+        $this->taskRepository->shouldReceive('updateProjectTask')
+            ->once()
+            ->with($fakeRequestMock, $fakeTaskMock)
+            ->andReturn($fakeTaskMock);
+
+        $this->assertEquals([
+            'data' => $fakeTaskArray
+        ], $this->service->updateProjectTask($fakeRequestMock, $fakeProjectId, $fakeTaskId));
     }
 }

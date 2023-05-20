@@ -78,7 +78,7 @@ class TaskControllerTest extends TestCase
 
         $response = $this->authAndGet("/api/projects/{$project->id}/tasks?page=1&perPage=5&sortBy=alpha_asc&with_closed=1");
 
-        $response->assertStatus(200);
+        $response->assertOk();
 
         // Assert the response structure and content
         $response->assertJsonStructure([
@@ -171,7 +171,7 @@ class TaskControllerTest extends TestCase
             'priority' => Priority::HIGH->value
         ]);
 
-        $response->assertStatus(200);
+        $response->assertOk();
 
         // Assert the response structure and content
         $response->assertJsonStructure([
@@ -244,9 +244,94 @@ class TaskControllerTest extends TestCase
 
         $response = $this->authAndGet("/api/projects/{$project->id}/tasks/{$task->id}");
 
-        $response->assertStatus(200);
+        $response->assertOk();
 
         // Assert the response structure and content
+        $response->assertJsonStructure([
+            'data' => [
+                'id',
+                'slug',
+                'title',
+                'description',
+                'status',
+                'priority',
+                'difficulty',
+                'assignee'
+            ]
+        ]);
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTask
+     */
+    public function update_project_task_should_return_unauthorized_if_no_bearer_was_passed(): void
+    {
+        $fakeUuid = Str::uuid();
+
+        $response = $this->patch("/api/projects/{$fakeUuid}/tasks/{$fakeUuid}");
+
+        // Assert that the request is unauthorized (401 status code)
+        $response->assertUnauthorized();
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTask
+     */
+    public function update_project_task_should_return_input_ids_validation_error_if_not_in_uuid_format(): void
+    {
+        $response = $this->authAndPatch("/api/projects/wrong_project_id/tasks/wrong_task_id");
+        $arrayResponse = $response->json();
+
+        $this->assertArrayHasKey('errors', $arrayResponse);
+        $this->assertArrayHasKey('project', $arrayResponse['errors']);
+        $this->assertArrayHasKey('task', $arrayResponse['errors']);
+
+        $response->assertStatus(422);
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTask
+     */
+    public function update_project_task_should_return_input_validation_error_if_there_are_no_update_parameters(): void
+    {
+        $this->refreshDatabase();
+        $project = Project::factory()->create();
+        User::factory()->create();
+        $task = Task::factory()->create();
+
+        $response = $this->authAndPatch("/api/projects/{$project->id}/tasks/{$task->id}");
+        $arrayResponse = $response->json();
+
+        $this->assertArrayHasKey('errors', $arrayResponse);
+        $this->assertEquals(
+            ['title', 'description', 'assignee', 'difficulty', 'priority'],
+            array_keys($arrayResponse['errors'])
+        );
+
+        $response->assertStatus(422);
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTask
+     */
+    public function update_project_task_should_be_ok_with_just_single_param_update(): void
+    {
+        $this->refreshDatabase();
+        $project = Project::factory()->create();
+        User::factory()->create();
+        $task = Task::factory()->create();
+
+        $response = $this->authAndPatch("/api/projects/{$project->id}/tasks/{$task->id}", [
+            'title' => 'hooray'
+        ]);
+
+        $response->assertOk();
+
+        // Assert the response structure
         $response->assertJsonStructure([
             'data' => [
                 'id',
