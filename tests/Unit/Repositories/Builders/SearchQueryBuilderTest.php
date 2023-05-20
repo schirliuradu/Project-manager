@@ -7,12 +7,12 @@ use App\Models\Enums\Status;
 use App\Repositories\Builders\SearchQueryBuilder;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use PHPUnit\Framework\TestCase;
+use Tests\Unit\UnitTestCase;
 
 /**
  * @coversDefaultClass \App\Repositories\Builders\SearchQueryBuilder
  */
-class SearchQueryBuilderTest extends TestCase
+class SearchQueryBuilderTest extends UnitTestCase
 {
     private Builder $queryMock;
     private SearchQueryBuilder $qb;
@@ -24,21 +24,6 @@ class SearchQueryBuilderTest extends TestCase
         $this->queryMock = \Mockery::mock(Builder::class);
         $this->qb = new SearchQueryBuilder($this->queryMock);
     }
-
-    /**
-     * Tell mockery to count everything as assertion, to test flows and avoid risky tests
-     */
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-
-        if ($container = \Mockery::getContainer()) {
-            $this->addToAssertionCount($container->mockery_getExpectationCount());
-        }
-
-        \Mockery::close();
-    }
-
 
     /**
      * @test

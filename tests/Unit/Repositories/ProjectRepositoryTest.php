@@ -16,12 +16,12 @@ use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Pagination\LengthAwarePaginator;
-use PHPUnit\Framework\TestCase;
+use Tests\Unit\UnitTestCase;
 
 /**
  * @coversDefaultClass \App\Repositories\ProjectRepository
  */
-class ProjectRepositoryTest extends TestCase
+class ProjectRepositoryTest extends UnitTestCase
 {
     private Project $modelMock;
     private PaginationFormatter $paginationFormatterMock;
@@ -45,20 +45,6 @@ class ProjectRepositoryTest extends TestCase
             $this->projectFactoryMock,
             $this->builderFactoryMock
         );
-    }
-
-    /**
-     * Tell mockery to count everything as assertion, to test flows and avoid risky tests
-     */
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-
-        if ($container = \Mockery::getContainer()) {
-            $this->addToAssertionCount($container->mockery_getExpectationCount());
-        }
-
-        \Mockery::close();
     }
 
     /**

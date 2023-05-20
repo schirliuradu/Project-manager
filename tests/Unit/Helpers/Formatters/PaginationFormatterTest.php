@@ -4,12 +4,12 @@ namespace Tests\Unit\Helpers\Formatters;
 
 use App\Helpers\Formatters\PaginationFormatter;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
-use PHPUnit\Framework\TestCase;
+use Tests\Unit\UnitTestCase;
 
 /**
  * @coversDefaultClass \App\Helpers\Formatters\PaginationFormatter
  */
-class PaginationFormatterTest extends TestCase
+class PaginationFormatterTest extends UnitTestCase
 {
     /**
      * @test

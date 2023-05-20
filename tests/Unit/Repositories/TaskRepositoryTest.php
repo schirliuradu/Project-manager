@@ -11,13 +11,12 @@ use App\Repositories\TaskRepository;
 use Database\Factories\TaskFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Mockery\Mock;
-use PHPUnit\Framework\TestCase;
+use Tests\Unit\UnitTestCase;
 
 /**
  * @coversDefaultClass \App\Repositories\TaskRepository
  */
-class TaskRepositoryTest extends TestCase
+class TaskRepositoryTest extends UnitTestCase
 {
     private TaskRepository $repo;
 
@@ -41,20 +40,6 @@ class TaskRepositoryTest extends TestCase
             $this->taskFactoryMock,
             $this->builderFactoryMock
         );
-    }
-
-    /**
-     * Tell mockery to count everything as assertion, to test flows and avoid risky tests
-     */
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-
-        if ($container = \Mockery::getContainer()) {
-            $this->addToAssertionCount($container->mockery_getExpectationCount());
-        }
-
-        \Mockery::close();
     }
 
     /**

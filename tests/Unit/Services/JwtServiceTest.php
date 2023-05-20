@@ -13,12 +13,12 @@ use Lcobucci\JWT\Token;
 use Lcobucci\JWT\UnencryptedToken;
 use Lcobucci\JWT\Validation\RequiredConstraintsViolated;
 use Lcobucci\JWT\Validator;
-use PHPUnit\Framework\TestCase;
+use Tests\Unit\UnitTestCase;
 
 /**
  * @coversDefaultClass \App\Services\JwtService
  */
-class JwtServiceTest extends TestCase
+class JwtServiceTest extends UnitTestCase
 {
     private JwtService $service;
 
@@ -48,20 +48,6 @@ class JwtServiceTest extends TestCase
             $this->datetimeMock,
             $this->validatorMock
         );
-    }
-
-    /**
-     * Tell mockery to count everything as assertion, to test flows and avoid risky tests
-     */
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-
-        if ($container = \Mockery::getContainer()) {
-            $this->addToAssertionCount($container->mockery_getExpectationCount());
-        }
-
-        \Mockery::close();
     }
 
     /**

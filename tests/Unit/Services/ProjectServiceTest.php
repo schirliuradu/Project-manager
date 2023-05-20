@@ -10,13 +10,13 @@ use App\Models\Enums\Status;
 use App\Models\Project;
 use App\Repositories\ProjectRepository;
 use App\Services\ProjectService;
-use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Tests\Unit\UnitTestCase;
 
 /**
  * @coversDefaultClass \App\Services\ProjectService
  */
-class ProjectServiceTest extends TestCase
+class ProjectServiceTest extends UnitTestCase
 {
     private ProjectRepository $projectRepositoryMock;
     private ProjectService $service;
@@ -27,20 +27,6 @@ class ProjectServiceTest extends TestCase
 
         $this->projectRepositoryMock = \Mockery::mock(ProjectRepository::class);
         $this->service = new ProjectService($this->projectRepositoryMock);
-    }
-
-    /**
-     * Tell mockery to count everything as assertion, to test flows and avoid risky tests
-     */
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-
-        if ($container = \Mockery::getContainer()) {
-            $this->addToAssertionCount($container->mockery_getExpectationCount());
-        }
-
-        \Mockery::close();
     }
 
     /**
