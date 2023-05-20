@@ -370,6 +370,58 @@
                             }
                         }
                     },
+                    "400": {
+                        "description": "Bad Request."
+                    },
+                    "401": {
+                        "description": "Unauthorized."
+                    },
+                    "404": {
+                        "description": "Resource not found."
+                    },
+                    "422": {
+                        "description": "Unprocessable Content."
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/projects/{project}/tasks/{task}": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get single project task by id",
+                "description": "Endpoint which retrieves single project task by id.",
+                "operationId": "getProjectTask",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/project"
+                    },
+                    {
+                        "$ref": "#/components/parameters/task"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Task"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
                     "401": {
                         "description": "Unauthorized"
                     },
@@ -565,6 +617,15 @@
                 "name": "project",
                 "in": "path",
                 "description": "Project id",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                }
+            },
+            "task": {
+                "name": "task",
+                "in": "path",
+                "description": "Task id",
                 "required": true,
                 "schema": {
                     "type": "string"

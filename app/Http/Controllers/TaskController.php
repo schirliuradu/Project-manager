@@ -67,6 +67,33 @@ class TaskController extends Controller
     }
 
     /**
+     * @OA\Get(
+     *     path="/api/projects/{project}/tasks/{task}",
+     *     operationId="getProjectTask",
+     *     tags={"Tasks"},
+     *     summary="Get single project task by id",
+     *     description="Endpoint which retrieves single project task by id.",
+     *     security={{"bearerAuth": {}}},
+     *
+     *     @OA\Parameter(ref="#/components/parameters/project"),
+     *     @OA\Parameter(ref="#/components/parameters/task"),
+     *
+     *     @OA\Response(
+     *         response="200",
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 ref="#/components/schemas/Task"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response="401", description="Unauthorized"),
+     *     @OA\Response(response="404", description="Resource not found."),
+     *     @OA\Response(response="422", description="Unprocessable Content.")
+     * )
+     *
      * @param GetProjectTaskRequest $request
      * @param string $project
      * @param string $task

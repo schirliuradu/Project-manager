@@ -10,6 +10,18 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
 
+/**
+ * @OA\Parameter(
+ *     parameter="task",
+ *     name="task",
+ *     description="Task id",
+ *     required=true,
+ *     in="path",
+ *     @OA\Schema(
+ *         type="string"
+ *     )
+ * )
+ */
 class GetProjectTasksRequest extends FormRequest
 {
     /**

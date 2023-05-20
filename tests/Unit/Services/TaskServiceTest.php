@@ -3,7 +3,9 @@
 namespace Tests\Unit\Services;
 
 use App\Exceptions\ProjectNotFoundException;
+use App\Exceptions\TaskNotFoundException;
 use App\Http\Requests\AddTaskToProjectRequest;
+use App\Http\Requests\GetProjectTaskRequest;
 use App\Http\Requests\GetProjectTasksRequest;
 use App\Models\Enums\Status;
 use App\Models\Project;
@@ -219,5 +221,47 @@ class TaskServiceTest extends TestCase
         $this->assertEquals([
             'data' => ['fake_task_to_array']
         ], $this->service->addTaskToProject($fakeRequestMock, 'fake_uuid'));
+    }
+
+    /**
+     * @test
+     * @covers ::getProjectTask
+     */
+    public function get_project_task_should_throw_custom_exception_if_there_is_no_task_for_given_id()
+    {
+        $this->taskRepository->shouldReceive('getProjectTask')
+            ->once()
+            ->with($fakeProjectId = 'fake_project_uuid', $fakeTaskId = 'fake_task_uuid')
+            ->andThrow(TaskNotFoundException::class);
+
+        $this->expectException(TaskNotFoundException::class);
+        $this->service->getProjectTask(
+            \Mockery::mock(GetProjectTaskRequest::class),
+            $fakeProjectId,
+            $fakeTaskId
+        );
+    }
+
+    /**
+     * @test
+     * @covers ::getProjectTask
+     */
+    public function get_project_task_should_return_repository_response_formatted_as_wrapped_array()
+    {
+        $fakeTaskMock = \Mockery::mock(Task::class);
+        $fakeTaskMock->shouldReceive('toArray')
+            ->once()
+            ->andReturn($fakeTaskArray = ['fake_task_array']);
+
+        $this->taskRepository->shouldReceive('getProjectTask')
+            ->once()
+            ->with($fakeProjectId = 'fake_project_uuid', $fakeTaskId = 'fake_task_uuid')
+            ->andReturn($fakeTaskMock);
+
+        $this->assertEquals(['data' => $fakeTaskArray], $this->service->getProjectTask(
+            \Mockery::mock(GetProjectTaskRequest::class),
+            $fakeProjectId,
+            $fakeTaskId
+        ));
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Tests\Unit\Repositories;
 
+use App\Exceptions\TaskNotFoundException;
 use App\Factories\SearchQueryBuilderFactory;
 use App\Helpers\Formatters\PaginationFormatter;
 use App\Http\Requests\AddTaskToProjectRequest;
@@ -160,5 +161,58 @@ class TaskRepositoryTest extends UnitTestCase
             $fakeTaskMock,
             $this->repo->addTaskToProject($fakeRequestMock, 'fake_uuid')
         );
+    }
+
+    /**
+     * @test
+     * @covers ::getProjectTask
+     */
+    public function get_project_task_should_throw_custom_exception_if_no_task_found_for_given_id()
+    {
+        $queryMock = Mockery::mock(Builder::class);
+        $queryMock->shouldReceive('where')
+            ->once()
+            ->with('id', '=', $fakeTaskId = 'fake_task_uuid')
+            ->andReturnSelf();
+        $queryMock->shouldReceive('where')
+            ->once()
+            ->with('project_id', '=', $fakeProjectId = 'fake_project_uuid')
+            ->andReturnSelf();
+        $queryMock->shouldReceive('first')
+            ->once()
+            ->andReturnNull();
+
+        $this->modelMock->shouldReceive('query')
+            ->once()
+            ->andReturn($queryMock);
+
+        $this->expectException(TaskNotFoundException::class);
+        $this->repo->getProjectTask($fakeProjectId, $fakeTaskId);
+    }
+
+    /**
+     * @test
+     * @covers ::getProjectTask
+     */
+    public function get_project_task_should_return_found_task_instance()
+    {
+        $queryMock = Mockery::mock(Builder::class);
+        $queryMock->shouldReceive('where')
+            ->once()
+            ->with('id', '=', $fakeTaskId = 'fake_task_uuid')
+            ->andReturnSelf();
+        $queryMock->shouldReceive('where')
+            ->once()
+            ->with('project_id', '=', $fakeProjectId = 'fake_project_uuid')
+            ->andReturnSelf();
+        $queryMock->shouldReceive('first')
+            ->once()
+            ->andReturn($this->modelMock);
+
+        $this->modelMock->shouldReceive('query')
+            ->once()
+            ->andReturn($queryMock);
+
+        $this->assertInstanceOf(Task::class, $this->repo->getProjectTask($fakeProjectId, $fakeTaskId));
     }
 }

@@ -4,6 +4,7 @@ namespace Tests\Feature\Http\Controllers;
 
 use App\Models\Enums\Difficulty;
 use App\Models\Enums\Priority;
+use App\Models\Enums\Status;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
@@ -169,6 +170,79 @@ class TaskControllerTest extends TestCase
             'difficulty' => Difficulty::FIVE->value,
             'priority' => Priority::HIGH->value
         ]);
+
+        $response->assertStatus(200);
+
+        // Assert the response structure and content
+        $response->assertJsonStructure([
+            'data' => [
+                'id',
+                'slug',
+                'title',
+                'description',
+                'status',
+                'priority',
+                'difficulty',
+                'assignee'
+            ]
+        ]);
+    }
+
+    /**
+     * @test
+     * @covers ::getProjectTask
+     */
+    public function get_project_task_should_return_unauthorized_if_no_bearer_was_passed(): void
+    {
+        $fakeUuid = Str::uuid();
+
+        $response = $this->get("/api/projects/{$fakeUuid}/tasks/{$fakeUuid}");
+
+        // Assert that the request is unauthorized (401 status code)
+        $response->assertUnauthorized();
+    }
+
+    /**
+     * @test
+     * @covers ::getProjectTask
+     */
+    public function get_project_task_should_return_input_validation_error_if_input_is_not_ok(): void
+    {
+        $response = $this->authAndGet("/api/projects/wrong_project_id/tasks/wrong_task_id");
+        $arrayResponse = $response->json();
+
+        $this->assertArrayHasKey('errors', $arrayResponse);
+        $this->assertEquals(['project', 'task'], array_keys($arrayResponse['errors']));
+
+        $response->assertStatus(422);
+    }
+
+    /**
+     * @test
+     * @covers ::getProjectTask
+     */
+    public function get_project_task_should_return_not_found_status_if_project_was_not_found_for_given_id(): void
+    {
+        $this->refreshDatabase();
+        $fakeUuid = Str::uuid();
+
+        $response = $this->authAndGet("/api/projects/{$fakeUuid}/tasks/{$fakeUuid}");
+
+        $response->assertNotFound();
+    }
+
+    /**
+     * @test
+     * @covers ::getProjectTask
+     */
+    public function get_project_task_should_return_correctly_formatted_response_data(): void
+    {
+        $this->refreshDatabase();
+        User::factory()->create();
+        $project = Project::factory()->create();
+        $task = Task::factory()->create();
+
+        $response = $this->authAndGet("/api/projects/{$project->id}/tasks/{$task->id}");
 
         $response->assertStatus(200);
 
