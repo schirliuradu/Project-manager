@@ -102,7 +102,7 @@ class TaskRepository
             'status' => Status::OPEN->value,
         ]);
 
-        $task->setAttribute('slug', $task->getAttribute('id') . '-' . Str::slug($taskTitle));
+        $task->setAttribute('slug', Str::slug($task->getAttribute('id') . '-' . $taskTitle));
         $task->save();
 
         return $task;

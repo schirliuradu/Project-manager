@@ -11,6 +11,17 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\Rule;
 
+/**
+ * @OA\Schema(
+ *     schema="AddTaskToProjectRequest",
+ *     type="object",
+ *     @OA\Property(property="title", type="string", maxLength=255),
+ *     @OA\Property(property="description", type="string"),
+ *     @OA\Property(property="assignee", type="string", example="0056844c-afa2-406b-9989-d49c7e79bc3a"),
+ *     @OA\Property(property="difficulty", ref="#/components/schemas/DifficultyEnum"),
+ *     @OA\Property(property="priority", ref="#/components/schemas/PriorityEnum")
+ * )
+ */
 class AddTaskToProjectRequest extends FormRequest
 {
     /**

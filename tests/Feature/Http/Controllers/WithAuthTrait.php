@@ -52,7 +52,7 @@ trait WithAuthTrait
      * @throws ContainerExceptionInterface
      * @throws NotFoundExceptionInterface
      */
-    private function authAndPost(string $endpoint, array $data): TestResponse
+    private function authAndPost(string $endpoint, array $data = []): TestResponse
     {
         return $this->withHeaders([
             'Authorization' => 'Bearer ' . $this->bearer(),

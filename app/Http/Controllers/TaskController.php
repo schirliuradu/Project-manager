@@ -59,6 +59,7 @@ class TaskController extends Controller
      * @param string $project
      *
      * @return JsonResponse
+     * @throws ProjectNotFoundException
      */
     public function getProjectTasks(GetProjectTasksRequest $request, string $project): JsonResponse
     {
@@ -79,6 +80,39 @@ class TaskController extends Controller
     }
 
     /**
+     * @OA\Post(
+     *     path="/api/projects/{project}/tasks",
+     *     operationId="addTaskToProject",
+     *     tags={"Tasks"},
+     *     summary="Add new task to existing project.",
+     *     description="Endpoint which adds new task to an existing project.",
+     *     security={{"bearerAuth": {}}},
+     *
+     *     @OA\Parameter(ref="#/components/parameters/project"),
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Add Task To Project Request",
+     *         @OA\JsonContent(ref="#/components/schemas/AddTaskToProjectRequest")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response="200",
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             @OA\Property(
+     *                 property="data",
+     *                 ref="#/components/schemas/Task"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(response="400", description="Bad Request."),
+     *     @OA\Response(response="401", description="Unauthorized."),
+     *     @OA\Response(response="404", description="Resource not found."),
+     *     @OA\Response(response="422", description="Unprocessable Content.")
+     * )
+     *
      * @param AddTaskToProjectRequest $request
      * @param string $project
      *
