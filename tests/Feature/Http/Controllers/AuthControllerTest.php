@@ -12,7 +12,7 @@ use Tests\TestCase;
  */
 class AuthControllerTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, WithAuthTrait;
 
     /**
      * @test
@@ -123,5 +123,69 @@ class AuthControllerTest extends TestCase
         ]);
 
         $response->assertBadRequest();
+    }
+
+    /**
+     * @test
+     * @covers ::register
+     */
+    public function should_validate_missing_register_parameters_and_return_validation_messages(): void
+    {
+        $response = $this->postJson('/api/register', []);
+
+        $response->assertJsonValidationErrors(['email', 'password', 'first_name', 'last_name']);
+
+        $this->assertEquals(422, $response->getStatusCode());
+    }
+
+    /**
+     * @test
+     * @covers ::register
+     */
+    public function should_register_new_user_and_return_login_data_for_newly_added_user(): void
+    {
+        $this->refreshDatabase();
+
+        $response = $this->postJson('/api/register', [
+            'email' => 'test@test.com',
+            'password' => 'password',
+            'first_name' => 'test',
+            'last_name' => 'test'
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonStructure([
+            'user',
+            'token',
+            'refresh'
+        ]);
+    }
+
+    /**
+     * @test
+     * @covers ::refresh
+     */
+    public function should_validate_missing_refresh_parameters_and_return_validation_message(): void
+    {
+        $response = $this->postJson('/api/refresh', []);
+
+        $response->assertJsonValidationErrorFor('token');
+
+        $this->assertEquals(422, $response->getStatusCode());
+    }
+
+    /**
+     * @test
+     * @covers ::refresh
+     */
+    public function should_refresh_token_and_return_it_as_response(): void
+    {
+        $response = $this->postJson('/api/refresh', [
+            'token' => $this->generateRefreshToken()
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonStructure(['token']);
+        $this->assertIsString($response->json('token'));
     }
 }

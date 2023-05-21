@@ -9,11 +9,8 @@ use App\Exceptions\WrongPasswordForGivenUserEmailException;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RefreshTokenRequest;
 use App\Http\Requests\RegisterRequest;
-use App\Repositories\UserRepository;
 use App\Services\AuthService;
-use App\Services\JwtService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {

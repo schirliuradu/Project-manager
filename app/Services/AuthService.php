@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\ExpiredJwtRefreshTokenException;
+use App\Exceptions\GenericErrorException;
 use App\Exceptions\UnauthorizedUserException;
 use App\Exceptions\UserNotFoundException;
 use App\Exceptions\WrongPasswordForGivenUserEmailException;
@@ -59,7 +60,7 @@ class AuthService
      */
     public function register(RegisterRequest $request): array
     {
-        $user = $this->userRepository->addUser($request->input());
+        $user = $this->userRepository->addUser($request->only(['email', 'password', 'first_name', 'last_name']));
 
         [$access, $refresh] = $this->jwtService->generateTokens($user->getAttribute('id'));
 

@@ -31,6 +31,24 @@ trait WithAuthTrait
     }
 
     /**
+     * @return string
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    private function generateRefreshToken(): string
+    {
+        /**
+         * Get jwt service class instance from container
+         * @var JwtService $jwtService
+         */
+        $jwtService = $this->app->get(JwtService::class);
+
+        User::factory()->create(['email' => 'test@test.com', 'password' => 'loremipsum']);
+
+        return $jwtService->generateTokens(1111)[1];
+    }
+
+    /**
      * @param string $endpoint
      *
      * @return TestResponse

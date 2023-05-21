@@ -2,6 +2,7 @@
 
 namespace App\Exceptions;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -42,6 +43,10 @@ class Handler extends ExceptionHandler
     {
         if ($e instanceof HttpException) {
             return response()->json(['error' => $e->getMessage()], $e->getStatusCode());
+        }
+        // catch query exceptions and map them in a custom message with 500 status code
+        if ($e instanceof QueryException) {
+            throw new GenericErrorException();
         }
 
         return parent::render($request, $e);
