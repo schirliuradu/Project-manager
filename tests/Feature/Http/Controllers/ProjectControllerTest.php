@@ -57,7 +57,7 @@ class ProjectControllerTest extends TestCase
         // Make a GET request to the '/api/projects' endpoint with bearer
         $response = $this->authAndGet('/api/projects?page=1&perPage=5&sortBy=alpha_asc&withClosed=1');
 
-        $response->assertStatus(200);
+        $response->assertOk();
 
         // Assert the response structure and content
         $response->assertJsonStructure([
@@ -133,7 +133,7 @@ class ProjectControllerTest extends TestCase
         // Make a GET request to the '/api/projects/id' endpoint with bearer
         $response = $this->authAndGet("/api/projects/{$project->id}");
 
-        $response->assertStatus(200);
+        $response->assertOk();
 
         $this->assertEquals([
             'data' => [
@@ -190,7 +190,7 @@ class ProjectControllerTest extends TestCase
         ];
 
         $response = $this->authAndPost('/api/projects', $fakePostData);
-        $response->assertStatus(200);
+        $response->assertOk();
 
         // Assert the response structure and content
         $response->assertJsonStructure([
@@ -264,7 +264,7 @@ class ProjectControllerTest extends TestCase
         $project = Project::factory()->create();
 
         $response = $this->authAndPatch("/api/projects/{$project->id}", $fakePostData);
-        $response->assertStatus(200);
+        $response->assertOk();
 
         // Assert the response structure and content
         $response->assertJsonStructure([
@@ -330,12 +330,12 @@ class ProjectControllerTest extends TestCase
     {
         $this->refreshDatabase();
 
-        $project = Project::factory()->create();
-        $project->status = Status::OPEN->value;
+        $project = Project::factory()->create(['status' => Status::OPEN->value]);
 
         $response = $this->authAndPatch("/api/projects/{$project->id}/close");
 
-        $response->assertStatus(204);
+        $this->assertEquals(Status::CLOSED->value, Project::find($project->id)->status);
+        $response->assertNoContent();
     }
 
     /**
@@ -351,6 +351,6 @@ class ProjectControllerTest extends TestCase
 
         $response = $this->authAndPatch("/api/projects/{$project->id}/open");
 
-        $response->assertStatus(400);
+        $response->assertBadRequest();
     }
 }

@@ -199,6 +199,28 @@ class TaskController extends Controller
     }
 
     /**
+     * @OA\Patch(
+     *     path="/api/projects/{project}/tasks/{task}/{action}",
+     *     operationId="updateProjectTaskStatus",
+     *     tags={"Tasks"},
+     *     summary="Update existing project task status.",
+     *     description="Endpoint which updates already existing project task status.",
+     *     security={{"bearerAuth": {}}},
+     *
+     *     @OA\Parameter(ref="#/components/parameters/project"),
+     *     @OA\Parameter(ref="#/components/parameters/task"),
+     *     @OA\Parameter(ref="#/components/parameters/taskStatusUpdateAction"),
+     *
+     *     @OA\Response(
+     *         response="204",
+     *         description="No Content"
+     *     ),
+     *     @OA\Response(response="400", description="Bad request."),
+     *     @OA\Response(response="401", description="Unauthorized."),
+     *     @OA\Response(response="404", description="Resource not found."),
+     *     @OA\Response(response="422", description="Unprocessable Content.")
+     * )
+     *
      * @param UpdateProjectTaskStatusRequest $request
      * @param string $project
      * @param string $task

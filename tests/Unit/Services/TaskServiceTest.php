@@ -9,6 +9,7 @@ use App\Http\Requests\GetProjectTaskRequest;
 use App\Http\Requests\GetProjectTasksRequest;
 use App\Http\Requests\UpdateProjectTaskRequest;
 use App\Models\Enums\Status;
+use App\Models\Enums\StatusActions;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
@@ -376,5 +377,115 @@ class TaskServiceTest extends TestCase
         $this->assertEquals([
             'data' => $fakeTaskArray
         ], $this->service->updateProjectTask($fakeRequestMock, $fakeProjectId, $fakeTaskId));
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTaskStatus
+     */
+    public function update_project_task_status_should_bubble_up_project_not_found_exception()
+    {
+        $this->projectRepository->shouldReceive('find')
+            ->with($fakeProjectId = 'fake_project_uuid')
+            ->once()
+            ->andThrow(ProjectNotFoundException::class);
+
+        $this->expectException(ProjectNotFoundException::class);
+        $this->service->updateProjectTaskStatus($fakeProjectId, 'fake_task_uuid', 'open');
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTaskStatus
+     */
+    public function update_project_task_status_should_throw_bad_request_exception_if_trying_to_work_on_a_closed_project_task_status()
+    {
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeProjectMock->shouldReceive('getAttribute')
+            ->once()
+            ->with('status')
+            ->andReturn(Status::CLOSED->value);
+
+        $this->projectRepository->shouldReceive('find')
+            ->with($fakeProjectId = 'fake_project_uuid')
+            ->once()
+            ->andReturn($fakeProjectMock);
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionMessage('Bad Request');
+
+        $this->service->updateProjectTaskStatus($fakeProjectId, 'fake_task_uuid', StatusActions::OPEN->value);
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTaskStatus
+     */
+    public function update_project_task_status_should_bubble_up_task_not_found_exception()
+    {
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeProjectMock->shouldReceive('getAttribute')
+            ->once()
+            ->with('status')
+            ->andReturn(Status::OPEN->value);
+
+        $this->projectRepository->shouldReceive('find')
+            ->with($fakeProjectId = 'fake_project_uuid')
+            ->once()
+            ->andReturn($fakeProjectMock);
+
+        $this->taskRepository->shouldReceive('getProjectTask')
+            ->once()
+            ->with($fakeProjectId, $fakeTaskId = 'fake_task_uuid')
+            ->andThrow(TaskNotFoundException::class);
+
+        $this->expectException(TaskNotFoundException::class);
+        $this->service->updateProjectTaskStatus($fakeProjectId, $fakeTaskId, StatusActions::CLOSE->value);
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTaskStatus
+     * @dataProvider updateProjectTaskStatusDataProvider
+     */
+    public function update_project_task_status_should_open_task(string $method, string $action)
+    {
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeProjectMock->shouldReceive('getAttribute')
+            ->once()
+            ->with('status')
+            ->andReturn(Status::OPEN->value);
+
+        $this->projectRepository->shouldReceive('find')
+            ->with($fakeProjectId = 'fake_project_uuid')
+            ->once()
+            ->andReturn($fakeProjectMock);
+
+        $fakeTaskMock = \Mockery::mock(Task::class);
+
+        $this->taskRepository->shouldReceive('getProjectTask')
+            ->once()
+            ->with($fakeProjectId, $fakeTaskId = 'fake_task_uuid')
+            ->andReturn($fakeTaskMock);
+
+        $this->taskRepository->shouldReceive($method)
+            ->once()
+            ->with($fakeTaskMock);
+
+        $this->service->updateProjectTaskStatus($fakeProjectId, $fakeTaskId, $action);
+    }
+
+    /**
+     * Data provider for update project task status test cases.
+     *
+     * @return array
+     */
+    public static function updateProjectTaskStatusDataProvider(): array
+    {
+        return [
+            ['openTask', StatusActions::OPEN->value],
+            ['blockTask', StatusActions::BLOCK->value],
+            ['closeTask', StatusActions::CLOSE->value]
+        ];
     }
 }

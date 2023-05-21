@@ -250,6 +250,60 @@ class TaskRepositoryTest extends UnitTestCase
     }
 
     /**
+     * @test
+     * @covers ::openTask
+     */
+    public function open_task_should_set_status_property_to_open_correctly()
+    {
+        $fakeTaskMock = \Mockery::mock(Task::class);
+        $fakeTaskMock->shouldReceive('setAttribute')
+            ->once()
+            ->with('status', Status::OPEN->value)
+            ->andReturnSelf();
+        $fakeTaskMock->shouldReceive('save')
+            ->once()
+            ->andReturnSelf();
+
+        $this->assertEquals($fakeTaskMock, $this->repo->openTask($fakeTaskMock));
+    }
+
+    /**
+     * @test
+     * @covers ::blockTask
+     */
+    public function block_task_should_set_status_property_to_blocked_correctly()
+    {
+        $fakeTaskMock = \Mockery::mock(Task::class);
+        $fakeTaskMock->shouldReceive('setAttribute')
+            ->once()
+            ->with('status', Status::BLOCKED->value)
+            ->andReturnSelf();
+        $fakeTaskMock->shouldReceive('save')
+            ->once()
+            ->andReturnSelf();
+
+        $this->assertEquals($fakeTaskMock, $this->repo->blockTask($fakeTaskMock));
+    }
+
+    /**
+     * @test
+     * @covers ::closeTask
+     */
+    public function close_task_should_set_status_property_to_closed_correctly()
+    {
+        $fakeTaskMock = \Mockery::mock(Task::class);
+        $fakeTaskMock->shouldReceive('setAttribute')
+            ->once()
+            ->with('status', Status::CLOSED->value)
+            ->andReturnSelf();
+        $fakeTaskMock->shouldReceive('save')
+            ->once()
+            ->andReturnSelf();
+
+        $this->assertEquals($fakeTaskMock, $this->repo->closeTask($fakeTaskMock));
+    }
+
+    /**
      * Data provider for update project task test cases.
      *
      * @return array

@@ -42,10 +42,7 @@ class TaskControllerTest extends TestCase
         $fakeUuid = Str::uuid();
 
         $response = $this->authAndGet("/api/projects/{$fakeUuid}/tasks");
-        $arrayResponse = $response->json();
-
-        $this->assertArrayHasKey('errors', $arrayResponse);
-        $this->assertEquals(['page', 'perPage', 'sortBy'], array_keys($arrayResponse['errors']));
+        $response->assertJsonValidationErrors(['page', 'perPage', 'sortBy']);
 
         $response->assertStatus(422);
     }
@@ -121,14 +118,8 @@ class TaskControllerTest extends TestCase
         $fakeUuid = Str::uuid();
 
         $response = $this->authAndPost("/api/projects/{$fakeUuid}/tasks");
-        $arrayResponse = $response->json();
 
-        $this->assertArrayHasKey('errors', $arrayResponse);
-        $this->assertEquals(
-            ['title', 'description', 'assignee', 'difficulty', 'priority'],
-            array_keys($arrayResponse['errors'])
-        );
-
+        $response->assertJsonValidationErrors(['title', 'description', 'assignee', 'difficulty', 'priority']);
         $response->assertStatus(422);
     }
 
@@ -209,11 +200,8 @@ class TaskControllerTest extends TestCase
     public function get_project_task_should_return_input_validation_error_if_input_is_not_ok(): void
     {
         $response = $this->authAndGet("/api/projects/wrong_project_id/tasks/wrong_task_id");
-        $arrayResponse = $response->json();
 
-        $this->assertArrayHasKey('errors', $arrayResponse);
-        $this->assertEquals(['project', 'task'], array_keys($arrayResponse['errors']));
-
+        $response->assertJsonValidationErrors(['project', 'task']);
         $response->assertStatus(422);
     }
 
@@ -282,12 +270,8 @@ class TaskControllerTest extends TestCase
     public function update_project_task_should_return_input_ids_validation_error_if_not_in_uuid_format(): void
     {
         $response = $this->authAndPatch("/api/projects/wrong_project_id/tasks/wrong_task_id");
-        $arrayResponse = $response->json();
 
-        $this->assertArrayHasKey('errors', $arrayResponse);
-        $this->assertArrayHasKey('project', $arrayResponse['errors']);
-        $this->assertArrayHasKey('task', $arrayResponse['errors']);
-
+        $response->assertJsonValidationErrors(['project', 'task']);
         $response->assertStatus(422);
     }
 
@@ -303,14 +287,8 @@ class TaskControllerTest extends TestCase
         $task = Task::factory()->create();
 
         $response = $this->authAndPatch("/api/projects/{$project->id}/tasks/{$task->id}");
-        $arrayResponse = $response->json();
 
-        $this->assertArrayHasKey('errors', $arrayResponse);
-        $this->assertEquals(
-            ['title', 'description', 'assignee', 'difficulty', 'priority'],
-            array_keys($arrayResponse['errors'])
-        );
-
+        $response->assertJsonValidationErrors(['title', 'description', 'assignee', 'difficulty', 'priority']);
         $response->assertStatus(422);
     }
 
@@ -344,5 +322,66 @@ class TaskControllerTest extends TestCase
                 'assignee'
             ]
         ]);
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTaskStatus
+     */
+    public function update_project_task_status_should_return_unauthorized_if_no_bearer_was_passed(): void
+    {
+        $fakeUuid = Str::uuid();
+
+        $response = $this->patch("/api/projects/{$fakeUuid}/tasks/{$fakeUuid}/open");
+
+        // Assert that the request is unauthorized (401 status code)
+        $response->assertUnauthorized();
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTaskStatus
+     */
+    public function update_project_task_status_should_return_input_ids_validation_error_if_not_in_uuid_format(): void
+    {
+        $response = $this->authAndPatch("/api/projects/wrong_project_id/tasks/wrong_task_id/fake_wrong_action");
+
+        $response->assertJsonValidationErrors(['project', 'task', 'action']);
+        $response->assertStatus(422);
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTaskStatus
+     */
+    public function update_project_task_status_should_return_bad_request_if_project_has_closed_status(): void
+    {
+        $this->refreshDatabase();
+
+        User::factory()->create();
+        $project = Project::factory()->create(['status' => Status::CLOSED->value]);
+        $task = Task::factory()->create(['status' => Status::OPEN->value]);
+
+        $response = $this->authAndPatch("/api/projects/{$project->id}/tasks/{$task->id}/open");
+
+        $response->assertBadRequest();
+    }
+
+    /**
+     * @test
+     * @covers ::updateProjectTaskStatus
+     */
+    public function update_project_task_status_should_return_no_content_response_if_status_was_updated(): void
+    {
+        $this->refreshDatabase();
+
+        User::factory()->create();
+        $project = Project::factory()->create(['status' => Status::OPEN->value]);
+        $task = Task::factory()->create(['status' => Status::OPEN->value]);
+
+        $response = $this->authAndPatch("/api/projects/{$project->id}/tasks/{$task->id}/close");
+
+        $this->assertEquals(Status::CLOSED->value, Task::find($task->id)->status);
+        $response->assertNoContent();
     }
 }

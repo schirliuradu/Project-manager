@@ -496,6 +496,49 @@
                     }
                 ]
             }
+        },
+        "/api/projects/{project}/{task}/{action}": {
+            "patch": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Update existing project task status.",
+                "description": "Endpoint which updates already existing project task status.",
+                "operationId": "updateProjectTaskStatus",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/project"
+                    },
+                    {
+                        "$ref": "#/components/parameters/task"
+                    },
+                    {
+                        "$ref": "#/components/parameters/taskStatusUpdateAction"
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad request."
+                    },
+                    "401": {
+                        "description": "Unauthorized."
+                    },
+                    "404": {
+                        "description": "Resource not found."
+                    },
+                    "422": {
+                        "description": "Unprocessable Content."
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -779,6 +822,20 @@
                     "type": "string",
                     "enum": [
                         "open",
+                        "close"
+                    ]
+                }
+            },
+            "taskStatusUpdateAction": {
+                "name": "action",
+                "in": "path",
+                "description": "Project task status update action",
+                "required": true,
+                "schema": {
+                    "type": "string",
+                    "enum": [
+                        "open",
+                        "block",
                         "close"
                     ]
                 }
