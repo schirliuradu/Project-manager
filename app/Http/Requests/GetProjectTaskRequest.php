@@ -3,21 +3,9 @@
 namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Http\JsonResponse;
 
-class GetProjectTaskRequest extends FormRequest
+class GetProjectTaskRequest extends ApiRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -31,7 +19,6 @@ class GetProjectTaskRequest extends FormRequest
         ];
     }
 
-
     /**
      * @return array
      */
@@ -41,18 +28,5 @@ class GetProjectTaskRequest extends FormRequest
             'project' => $this->route('project'),
             'task' => $this->route('task'),
         ]);
-    }
-
-    /**
-     * @param Validator $validator
-     *
-     * @return void
-     * @throws HttpResponseException
-     */
-    protected function failedValidation(Validator $validator): void
-    {
-        throw new HttpResponseException(
-            new JsonResponse(['errors' => $validator->errors()], 422)
-        );
     }
 }

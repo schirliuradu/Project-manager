@@ -3,10 +3,6 @@
 namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Http\JsonResponse;
 
 /**
  * @OA\Parameter(
@@ -28,16 +24,8 @@ use Illuminate\Http\JsonResponse;
  *     @OA\Property(property="password", type="string", maxLength=24)
  * )
  */
-class UpdateUserRequest extends FormRequest
+class UpdateUserRequest extends ApiRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -61,18 +49,5 @@ class UpdateUserRequest extends FormRequest
         return array_merge($this->request->all(), [
             'user' => $this->route('user'),
         ]);
-    }
-
-    /**
-     * @param Validator $validator
-     *
-     * @return void
-     * @throws HttpResponseException
-     */
-    protected function failedValidation(Validator $validator): void
-    {
-        throw new HttpResponseException(
-            new JsonResponse(['errors' => $validator->errors()], 422)
-        );
     }
 }
