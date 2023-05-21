@@ -74,4 +74,21 @@ class User extends Authenticatable
     {
         return $this->hasMany(Task::class, 'assignee');
     }
+
+    /**
+     * @OA\Schema(
+     *     schema="User",
+     *     @OA\Property(property="email", type="string", example="johndoe@test.com"),
+     *     @OA\Property(property="name", type="string", example="John Doe"),
+     * ),
+     *
+     * @return array
+     */
+    public function toArray(): array
+    {
+        return [
+            'email' => $this->email,
+            'name' => $this->first_name . ' ' . $this->last_name,
+        ];
+    }
 }

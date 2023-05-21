@@ -1,11 +1,12 @@
 <?php
 
-namespace Tests\Unit;
+namespace Tests\Unit\Repositories;
 
 use App\Models\User;
 use App\Repositories\UserRepository;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
+use Tests\Unit\UnitTestCase;
 
 /**
  * @coversDefaultClass \App\Repositories\UserRepository

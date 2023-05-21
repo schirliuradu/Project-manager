@@ -21,8 +21,8 @@ class AuthControllerTest extends TestCase
     {
         $response = $this->postJson('/api/login', []);
 
-        $this->assertArrayHasKey('email', $response->json()['errors']);
-        $this->assertArrayHasKey('password', $response->json()['errors']);
+        $response->assertJsonValidationErrors(['email', 'password']);
+
         $this->assertEquals(422, $response->getStatusCode());
     }
 
@@ -37,7 +37,8 @@ class AuthControllerTest extends TestCase
             'password' => 'loremipsum'
         ]);
 
-        $this->assertArrayHasKey('email', $response->json()['errors']);
+        $response->assertJsonValidationErrorFor('email');
+
         $this->assertEquals(422, $response->getStatusCode());
     }
 
@@ -49,7 +50,7 @@ class AuthControllerTest extends TestCase
     {
         $response = $this->postJson('/api/login', ['email' => 'test@test.com', 'password' => 'lorem']);
 
-        $this->assertArrayHasKey('password', $response->json()['errors']);
+        $response->assertJsonValidationErrorFor('password');
         $this->assertEquals(422, $response->getStatusCode());
     }
 
@@ -64,7 +65,7 @@ class AuthControllerTest extends TestCase
         $fakeUserEmail = 'test@test.com';
         $response = $this->postJson('/api/login', ['email' => $fakeUserEmail, 'password' => 'loremipsum']);
 
-        $this->assertEquals(404, $response->getStatusCode());
+        $response->assertNotFound();
         $this->assertEquals("User not found for email: {$fakeUserEmail}", $response->json()['message']);
     }
 
@@ -82,7 +83,7 @@ class AuthControllerTest extends TestCase
         $response = $this->postJson('/api/login', $fakeUser);
         $jsonResponse = $response->json();
 
-        $this->assertEquals(200, $response->getStatusCode());
+        $response->assertOk();
         $this->assertEquals('test@test.com', $jsonResponse['user']['email']);
         $this->assertArrayHasKey('token', $jsonResponse);
         $this->assertArrayHasKey('refresh', $jsonResponse);

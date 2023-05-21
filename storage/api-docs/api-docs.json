@@ -19,6 +19,47 @@
         }
     ],
     "paths": {
+        "/api/login": {
+            "post": {
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login and get jwt token..",
+                "description": "Endpoint which logs user in and returns jwt tokens.",
+                "operationId": "login",
+                "requestBody": {
+                    "description": "Login Request",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/LoginRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/Project"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Content."
+                    }
+                }
+            }
+        },
         "/api/projects": {
             "get": {
                 "tags": [
@@ -497,7 +538,7 @@
                 ]
             }
         },
-        "/api/projects/{project}/{task}/{action}": {
+        "/api/projects/{project}/tasks/{task}/{action}": {
             "patch": {
                 "tags": [
                     "Tasks"
@@ -543,6 +584,23 @@
     },
     "components": {
         "schemas": {
+            "Login": {
+                "properties": {
+                    "id": {
+                        "type": "string",
+                        "example": "0056844c-afa2-406b-9989-d49c7e79bc3a"
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "example": "John"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "example": "Doe"
+                    }
+                },
+                "type": "object"
+            },
             "AddProjectRequest": {
                 "properties": {
                     "title": {
@@ -573,6 +631,17 @@
                     },
                     "priority": {
                         "$ref": "#/components/schemas/PriorityEnum"
+                    }
+                },
+                "type": "object"
+            },
+            "LoginRequest": {
+                "properties": {
+                    "email": {
+                        "type": "string"
+                    },
+                    "password": {
+                        "type": "string"
                     }
                 },
                 "type": "object"
@@ -730,6 +799,19 @@
                     "last_name": {
                         "type": "string",
                         "example": "Doe"
+                    }
+                },
+                "type": "object"
+            },
+            "User": {
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "example": "johndoe@test.com"
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "John Doe"
                     }
                 },
                 "type": "object"

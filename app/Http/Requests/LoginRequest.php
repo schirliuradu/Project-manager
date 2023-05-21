@@ -8,6 +8,14 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * @OA\Schema(
+ *     schema="LoginRequest",
+ *     type="object",
+ *     @OA\Property(property="email", type="string"),
+ *     @OA\Property(property="password", type="string")
+ * )
+ */
 class LoginRequest extends FormRequest
 {
     /**
