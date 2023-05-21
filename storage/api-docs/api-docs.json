@@ -656,6 +656,66 @@
                     }
                 ]
             }
+        },
+        "/api/users/{user}": {
+            "patch": {
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Update existing user data.",
+                "description": "Endpoint which updates already existing user data.",
+                "operationId": "updateUser",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/user"
+                    }
+                ],
+                "requestBody": {
+                    "description": "Update User Request",
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateUserRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Success",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/components/schemas/User"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized."
+                    },
+                    "403": {
+                        "description": "Forbidden."
+                    },
+                    "404": {
+                        "description": "Resource not found."
+                    },
+                    "422": {
+                        "description": "Unprocessable Content."
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
@@ -802,6 +862,23 @@
                     },
                     "priority": {
                         "$ref": "#/components/schemas/PriorityEnum"
+                    }
+                },
+                "type": "object"
+            },
+            "UpdateUserRequest": {
+                "properties": {
+                    "first_name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "maxLength": 255
+                    },
+                    "password": {
+                        "type": "string",
+                        "maxLength": 24
                     }
                 },
                 "type": "object"
@@ -1046,6 +1123,15 @@
                         "block",
                         "close"
                     ]
+                }
+            },
+            "user": {
+                "name": "user",
+                "in": "path",
+                "description": "User id",
+                "required": true,
+                "schema": {
+                    "type": "string"
                 }
             }
         },

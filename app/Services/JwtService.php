@@ -56,6 +56,20 @@ class JwtService
     }
 
     /**
+     * @param string $token
+     *
+     * @return string
+     * @throws ExpiredJwtTokenException
+     */
+    public function getUserIdFromToken(string $token): string
+    {
+        $tokenObject = $this->parseAndValidateToken($token);
+
+        // Retrieve the user ID from the refresh token
+        return $tokenObject->claims()->get('userId');
+    }
+
+    /**
      * Method which parses and validates given token returning boolean result.
      *
      * @param string $bearer
@@ -63,7 +77,7 @@ class JwtService
      * @return Token
      * @throws ExpiredJwtTokenException
      */
-    public function parseAndValidateToken(string $bearer): Token
+    public function parseAndValidateToken(string $bearer): UnencryptedToken
     {
         $token = $this->parser->parse($bearer);
 
@@ -92,12 +106,8 @@ class JwtService
      */
     public function refreshToken(string $refreshToken): string
     {
-        // Parse and validate the refresh token
         try {
-            $token = $this->parseAndValidateToken($refreshToken);
-
-            // Retrieve the user ID from the refresh token
-            $userId = $token->claims()->get('userId');
+            $userId = $this->getUserIdFromToken($refreshToken);
 
             // Generate a new access token
             return $this->generateAccessToken($userId)->toString();

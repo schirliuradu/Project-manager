@@ -87,8 +87,8 @@ class User extends Authenticatable
     public function toArray(): array
     {
         return [
-            'email' => $this->email,
-            'name' => $this->first_name . ' ' . $this->last_name,
+            'email' => $this->getAttribute('email'),
+            'name' => $this->getAttribute('first_name') . ' ' . $this->getAttribute('last_name')
         ];
     }
 }

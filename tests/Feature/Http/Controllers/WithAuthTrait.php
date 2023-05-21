@@ -25,9 +25,13 @@ trait WithAuthTrait
          */
         $jwtService = $this->app->get(JwtService::class);
 
-        User::factory()->create(['email' => 'test@test.com', 'password' => 'loremipsum']);
+        $user = User::where('email', '=', 'test@test.com')->first();
 
-        return $jwtService->generateTokens(1111)[0];
+        if (!$user) {
+            $user = User::factory()->create(['email' => 'test@test.com', 'password' => 'loremipsum']);
+        }
+
+        return $jwtService->generateTokens($user->id)[0];
     }
 
     /**

@@ -214,30 +214,19 @@ class JwtServiceTest extends UnitTestCase
     {
         $fakeRefreshToken = 'fake_refresh_token';
 
-        $fakeTokenMock = \Mockery::mock(UnencryptedToken::class);
-        $fakeTokenMock->shouldReceive('isExpired')
-            ->once()
-            ->with($this->datetimeMock)
-            ->andReturnFalse();
+        $service = \Mockery::mock(JwtService::class, [
+            $this->algorithmMock,
+            $this->signingKeyMock,
+            $this->builderMock,
+            $this->parserMock,
+            $this->datetimeMock,
+            $this->validatorMock
+        ])->makePartial();
 
-        // very, very, terribly ugly mockery overload because of final class with no interface ...
-        $fakeClaimsMock = \Mockery::mock('alias:Lcobucci\JWT\Token\DataSet');
-        $fakeClaimsMock->shouldReceive('get')
-            ->once()
-            ->with('userId')
-            ->andReturn('fake_user_id');
-
-        $fakeTokenMock->shouldReceive('claims')
-            ->once()
-            ->andReturn($fakeClaimsMock);
-
-        $this->parserMock->shouldReceive('parse')
+        $service->shouldReceive('getUserIdFromToken')
             ->once()
             ->with($fakeRefreshToken)
-            ->andReturn($fakeTokenMock);
-
-        $this->validatorMock->shouldReceive('assert')
-            ->once();
+            ->andReturn('fake_user_id');
 
         $this->datetimeMock->shouldReceive('modify')
             ->once()
@@ -259,6 +248,41 @@ class JwtServiceTest extends UnitTestCase
             ->with($this->algorithmMock, $this->signingKeyMock)
             ->andReturns($fakeAccessTokenMock);
 
-        $this->service->refreshToken($fakeRefreshToken);
+        $service->refreshToken($fakeRefreshToken);
+    }
+
+    /**
+     * @test
+     * @covers ::getUserIdFromToken
+     */
+    public function get_user_id_from_token_should_return_user_id(): void
+    {
+        $service = \Mockery::mock(JwtService::class, [
+            $this->algorithmMock,
+            $this->signingKeyMock,
+            $this->builderMock,
+            $this->parserMock,
+            $this->datetimeMock,
+            $this->validatorMock
+        ])->makePartial();
+
+        // very, very, terribly ugly mockery overload because of final class with no interface ...
+        $fakeClaimsMock = \Mockery::mock('overload:Lcobucci\JWT\Token\DataSet');
+        $fakeClaimsMock->shouldReceive('get')
+            ->once()
+            ->with('userId')
+            ->andReturn($fakeUserId = 'fake_user_id');
+
+        $fakeTokenMock = \Mockery::mock(UnencryptedToken::class);
+        $fakeTokenMock->shouldReceive('claims')
+            ->once()
+            ->andReturn($fakeClaimsMock);
+
+        $service->shouldReceive('parseAndValidateToken')
+            ->once()
+            ->with($fakeToken = 'fake_token')
+            ->andReturn($fakeTokenMock);
+
+        $this->assertEquals($fakeUserId, $service->getUserIdFromToken($fakeToken));
     }
 }
