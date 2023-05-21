@@ -2,24 +2,28 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\ExpiredJwtRefreshTokenException;
+use App\Exceptions\UnauthorizedUserException;
 use App\Exceptions\UserNotFoundException;
+use App\Exceptions\WrongPasswordForGivenUserEmailException;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RefreshTokenRequest;
+use App\Http\Requests\RegisterRequest;
 use App\Repositories\UserRepository;
+use App\Services\AuthService;
 use App\Services\JwtService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
     /**
      * AuthController class constructor.
      *
-     * @param JwtService $jwtService
-     * @param UserRepository $userRepository
+     * @param AuthService $authService
      */
-    public function __construct(
-        private readonly JwtService     $jwtService,
-        private readonly UserRepository $userRepository
-    ) {
+    public function __construct(private readonly AuthService $authService)
+    {
     }
 
     /**
@@ -28,7 +32,13 @@ class AuthController extends Controller
      *     @OA\Property(property="id", type="string", example="0056844c-afa2-406b-9989-d49c7e79bc3a"),
      *     @OA\Property(property="first_name", type="string", example="John"),
      *     @OA\Property(property="last_name", type="string", example="Doe"),
-     * )
+     * ),
+     * @OA\Schema(
+     *     schema="LoginResponse",
+     *     @OA\Property(property="user", ref="#/components/schemas/User"),
+     *     @OA\Property(property="token", type="string"),
+     *     @OA\Property(property="refresh", type="string"),
+     * ),
      *
      * @OA\Post(
      *     path="/api/login",
@@ -46,36 +56,90 @@ class AuthController extends Controller
      *     @OA\Response(
      *         response="200",
      *         description="Success",
-     *         @OA\JsonContent(
-     *             type="object",
-     *             @OA\Property(
-     *                 property="data",
-     *                 ref="#/components/schemas/Project"
-     *             )
-     *         )
+     *         @OA\JsonContent(ref="#/components/schemas/LoginResponse"),
      *     ),
+     *     @OA\Response(response="400", description="Bad request."),
+     *     @OA\Response(response="401", description="Unauthorized."),
      *     @OA\Response(response="422", description="Unprocessable Content.")
      * )
      *
      * @param LoginRequest $request
      *
      * @return JsonResponse
-     * @throws UserNotFoundException
+     * @throws UserNotFoundException|WrongPasswordForGivenUserEmailException
      */
     public function login(LoginRequest $request): JsonResponse
     {
-        $user = $this->userRepository->getUserByEmail($request->input('email'));
+        return response()->json($this->authService->login($request));
+    }
 
-        if (!$user) {
-            throw new UserNotFoundException();
-        }
+    /**
+     * @OA\Post(
+     *     path="/api/register",
+     *     operationId="register",
+     *     tags={"Auth"},
+     *     summary="Register new user.",
+     *     description="Endpoint which registers new user and returns jwt credentials.",
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Register Request",
+     *         @OA\JsonContent(ref="#/components/schemas/RegisterRequest")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response="200",
+     *         description="Success",
+     *         @OA\JsonContent(ref="#/components/schemas/LoginResponse"),
+     *     ),
+     *     @OA\Response(response="422", description="Unprocessable Content.")
+     * )
+     *
+     * @param RegisterRequest $request
+     *
+     * @return JsonResponse
+     */
+    public function register(RegisterRequest $request): JsonResponse
+    {
+        return response()->json($this->authService->register($request));
+    }
 
-        [$access, $refresh] = $this->jwtService->generateTokens($user->getAttribute('id'));
-
-        return response()->json([
-            'user' => $user->toArray(),
-            'token' => $access,
-            'refresh' => $refresh
-        ]);
+    /**
+     * @OA\Schema(
+     *     schema="RefreshResponse",
+     *     @OA\Property(property="token", type="string")
+     * ),
+     *
+     * @OA\Post(
+     *     path="/api/refresh",
+     *     operationId="refresh",
+     *     tags={"Auth"},
+     *     summary="Refresh token.",
+     *     description="Endpoint which refreshes token and returns new jwt access token.",
+     *
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="Refresh Request",
+     *         @OA\JsonContent(ref="#/components/schemas/RefreshRequest")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response="200",
+     *         description="Success",
+     *         @OA\JsonContent(ref="#/components/schemas/RefreshResponse"),
+     *     ),
+     *     @OA\Response(response="401", description="Unauthorized."),
+     *     @OA\Response(response="422", description="Unprocessable Content.")
+     * )
+     *
+     * @param RefreshTokenRequest $request
+     *
+     * @return JsonResponse
+     * @throws ExpiredJwtRefreshTokenException
+     * @throws UnauthorizedUserException
+     */
+    public function refresh(RefreshTokenRequest $request): JsonResponse
+    {
+        return response()->json($this->authService->refreshToken($request));
     }
 }

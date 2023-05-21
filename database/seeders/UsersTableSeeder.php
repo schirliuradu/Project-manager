@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class UsersTableSeeder extends Seeder
 {
@@ -15,7 +16,7 @@ class UsersTableSeeder extends Seeder
         // fake user to auth with
         \App\Models\User::factory()->create([
             'email' => 'test@test.com',
-            'password' => 'password',
+            'password' => Hash::make('password'),
             'first_name' => 'Test',
             'last_name' => 'Test',
         ]);

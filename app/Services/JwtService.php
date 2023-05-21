@@ -2,13 +2,16 @@
 
 namespace App\Services;
 
+use App\Exceptions\ExpiredJwtRefreshTokenException;
 use App\Exceptions\ExpiredJwtTokenException;
+use App\Exceptions\UnauthorizedUserException;
 use DateTimeInterface;
 use Exception;
 use Lcobucci\JWT\Builder;
 use Lcobucci\JWT\Parser;
 use Lcobucci\JWT\Signer;
 use Lcobucci\JWT\Signer\Key;
+use Lcobucci\JWT\Token;
 use Lcobucci\JWT\UnencryptedToken;
 use Lcobucci\JWT\Validation\Constraint\IssuedBy;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
@@ -57,13 +60,16 @@ class JwtService
      * Method which parses and validates given token returning boolean result.
      *
      * @param string $bearer
-     * @throws RequiredConstraintsViolated|ExpiredJwtTokenException|Exception
+     *
+     * @return Token
+     * @throws ExpiredJwtTokenException
      */
-    public function parseAndValidateToken(string $bearer): void
+    public function parseAndValidateToken(string $bearer): Token
     {
         $token = $this->parser->parse($bearer);
 
-        $this->validator->assert($token,
+        $this->validator->assert(
+            $token,
             new IssuedBy(env('APP_URL')),
             new SignedWith($this->algorithm, $this->signingKey),
             // we can add and check all stuff we desire here ...
@@ -71,6 +77,36 @@ class JwtService
 
         if ($token->isExpired($this->dateTime)) {
             throw new ExpiredJwtTokenException();
+        }
+
+        return $token;
+    }
+
+    /**
+     * Refreshes the access token using a refresh token.
+     *
+     * @param string $refreshToken
+     *
+     * @return string
+     * @throws ExpiredJwtRefreshTokenException
+     * @throws UnauthorizedUserException
+     */
+    public function refreshAccessToken(string $refreshToken): string
+    {
+        // Parse and validate the refresh token
+        try {
+            $token = $this->parseAndValidateToken($refreshToken);
+
+            // Retrieve the user ID from the refresh token
+            $userId = $token->claims()->get('userId');
+
+            // Generate a new access token
+            return $this->generateAccessToken($userId)->toString();
+
+        } catch (ExpiredJwtTokenException $e) {
+            throw new ExpiredJwtRefreshTokenException();
+        } catch (RequiredConstraintsViolated|Exception $e) {
+            throw new UnauthorizedUserException();
         }
     }
 

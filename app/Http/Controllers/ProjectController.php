@@ -63,6 +63,7 @@ class ProjectController extends Controller
     }
 
     /**
+     *
      * @OA\Get(
      *     path="/api/projects/{project}",
      *     operationId="getProject",

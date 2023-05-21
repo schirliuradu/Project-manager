@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Exceptions\UserNotFoundException;
 use App\Models\User;
+use Database\Factories\UserFactory;
 
 class UserRepository
 {
@@ -11,9 +12,12 @@ class UserRepository
      * User repository class constructor.
      *
      * @param User $user
+     * @param UserFactory $factory
      */
-    public function __construct(protected User $user)
-    {
+    public function __construct(
+        protected User $user,
+        protected UserFactory $factory
+    ) {
     }
 
     /**
@@ -40,5 +44,15 @@ class UserRepository
             ->query()
             ->where('id', '=', $id)
             ->first();
+    }
+
+    /**
+     * @param array $user
+     *
+     * @return User
+     */
+    public function addUser(array $user): User
+    {
+        return $this->factory->create($user);
     }
 }

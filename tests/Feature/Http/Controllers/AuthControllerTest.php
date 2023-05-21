@@ -4,6 +4,7 @@ namespace Tests\Feature\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 /**
@@ -77,8 +78,15 @@ class AuthControllerTest extends TestCase
     {
         $this->refreshTestDatabase();
 
-        $fakeUser = ['email' => 'test@test.com', 'password' => 'loremipsum'];
-        User::factory()->create($fakeUser);
+        $fakeUser = [
+            'email' => 'test@test.com',
+            'password' => 'loremipsum'
+        ];
+
+        User::factory()->create([
+            ...$fakeUser,
+            'password' => Hash::make('loremipsum')
+        ]);
 
         $response = $this->postJson('/api/login', $fakeUser);
         $jsonResponse = $response->json();
@@ -89,5 +97,31 @@ class AuthControllerTest extends TestCase
         $this->assertArrayHasKey('refresh', $jsonResponse);
         $this->assertIsString('token', $jsonResponse['token']);
         $this->assertIsString('refresh', $jsonResponse['refresh']);
+    }
+
+    /**
+     * @test
+     * @covers ::login
+     */
+    public function should_return_bad_request_status_if_wrong_password_was_given_for_given_user_email(): void
+    {
+        $this->refreshTestDatabase();
+
+        $fakeUser = [
+            'email' => 'test@test.com',
+            'password' => 'loremipsum'
+        ];
+
+        User::factory()->create([
+            ...$fakeUser,
+            'password' => Hash::make('loremipsum')
+        ]);
+
+        $response = $this->postJson('/api/login', [
+            ...$fakeUser,
+            'password' => 'loremipsumdifferent'
+        ]);
+
+        $response->assertBadRequest();
     }
 }
