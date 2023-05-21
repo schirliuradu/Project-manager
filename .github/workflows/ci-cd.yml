@@ -2,9 +2,12 @@ name: CI/CD Pipeline
 
 on:
   push:
+    # should leave only pull requests
     branches:
       - main
   pull_request:
+    branches:
+      - main
 
 jobs:
   build:
