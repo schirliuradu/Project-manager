@@ -152,7 +152,7 @@ class TaskControllerTest extends TestCase
         $this->refreshDatabase();
 
         $user = User::factory()->create();
-        $project = Project::factory()->create();
+        $project = Project::factory()->create(['status' => Status::OPEN->value]);
 
         $response = $this->authAndPost("/api/projects/{$project->id}/tasks", [
             'title' => 'lorem',

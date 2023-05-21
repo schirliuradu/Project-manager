@@ -2,9 +2,12 @@
 
 namespace Tests\Unit\Repositories;
 
+use App\Http\Requests\UpdateUserRequest;
 use App\Models\User;
 use App\Repositories\UserRepository;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 use Tests\Unit\UnitTestCase;
 
@@ -14,14 +17,18 @@ use Tests\Unit\UnitTestCase;
 class UserRepositoryTest extends UnitTestCase
 {
     private UserRepository $repo;
+
     private User $modelMock;
+    private UserFactory $userFactoryMock;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->modelMock = \Mockery::mock(User::class);
-        $this->repo = new UserRepository($this->modelMock);
+        $this->userFactoryMock = \Mockery::mock(UserFactory::class);
+
+        $this->repo = new UserRepository($this->modelMock, $this->userFactoryMock);
     }
 
     /**
@@ -114,5 +121,57 @@ class UserRepositoryTest extends UnitTestCase
             ->andReturn($queryMock);
 
         $this->assertEquals($this->modelMock, $this->repo->find($id));
+    }
+
+
+    /**
+     * @test
+     * @covers ::updateUser
+     * @dataProvider updateUserDataProvider
+     */
+    public function update_user_should_set_request_properties_to_existing_user_correctly(
+        string $property,
+        string $value
+    ): void {
+        $fakeRequestMock = \Mockery::mock(UpdateUserRequest::class);
+        $fakeRequestMock->shouldReceive('input')
+            ->once()
+            ->with($property)
+            ->andReturn($value);
+        $fakeRequestMock->shouldReceive('input')
+            ->twice();
+
+        $fakeUserMock = \Mockery::mock(User::class);
+        $fakeUserMock->shouldReceive('setAttribute')
+            ->once()
+            ->with($property, $value)
+            ->andReturnSelf();
+
+        // mock hash facade only for password property
+        if ($property === 'password') {
+            Hash::shouldReceive('make')
+                ->once()
+                ->andReturn($value);
+        }
+
+        $fakeUserMock->shouldReceive('save')
+            ->once()
+            ->andReturnSelf();
+
+        $this->assertEquals($fakeUserMock, $this->repo->updateUser($fakeUserMock, $fakeRequestMock));
+    }
+
+    /**
+     * Data provider for update user test cases.
+     *
+     * @return array
+     */
+    public static function updateUserDataProvider(): array
+    {
+        return [
+            ['first_name', 'john'],
+            ['last_name', 'doe'],
+            ['password', 'changedpassword']
+        ];
     }
 }

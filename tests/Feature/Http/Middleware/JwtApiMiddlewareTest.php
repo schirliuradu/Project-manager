@@ -71,8 +71,13 @@ class JwtApiMiddlewareTest extends TestCase
          */
         $jwtService = $this->app->get(JwtService::class);
 
-        // generate new fake token
-        [$fakeBearer, ] = $jwtService->generateTokens(1111);
+        try {
+            // generate new fake token
+            [$fakeBearer, ] = $jwtService->generateTokens('fake_user_id');
+
+        } catch (\Throwable $e) {
+            dd($e->getMessage());
+        }
 
         // bind wrong format bearer token on headers
         $request->headers->set('Authorization', "Bearer {$fakeBearer}");

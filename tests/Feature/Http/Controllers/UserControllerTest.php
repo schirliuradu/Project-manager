@@ -5,6 +5,8 @@ namespace Tests\Feature\Http\Controllers;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
+use Psr\Container\ContainerExceptionInterface;
+use Psr\Container\NotFoundExceptionInterface;
 use Tests\TestCase;
 
 /**
@@ -39,10 +41,14 @@ class UserControllerTest extends TestCase
         $otherUser = User::factory()->create(['email' => 'johndoe@test.com']);
 
         // we auth for `test@test.com` user here but trying to change john doe
-        $response = $this->authAndPatch("/api/users/{$otherUser->id}", [
-            'first_name' => 'fake first',
-            'last_name' => 'fake last'
-        ]);
+        try {
+            $response = $this->authAndPatch("/api/users/{$otherUser->id}", [
+                'first_name' => 'fake first',
+                'last_name' => 'fake last'
+            ]);
+        } catch (NotFoundExceptionInterface|ContainerExceptionInterface $e) {
+            dd($e->getMessage());
+        }
 
         $response->assertForbidden();
     }

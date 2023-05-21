@@ -144,7 +144,7 @@ class JwtServiceTest extends UnitTestCase
      */
     public function should_follow_correctly_validation_flow_if_there_are_no_violated_constraints_and_bearer_is_valid(): void
     {
-        $fakeToken = \Mockery::mock(Token::class);
+        $fakeToken = \Mockery::mock(UnencryptedToken::class);
         $fakeToken->shouldReceive('isExpired')
             ->once()
             ->andReturnFalse();
@@ -266,12 +266,11 @@ class JwtServiceTest extends UnitTestCase
             $this->validatorMock
         ])->makePartial();
 
-        // very, very, terribly ugly mockery overload because of final class with no interface ...
-        $fakeClaimsMock = \Mockery::mock('overload:Lcobucci\JWT\Token\DataSet');
-        $fakeClaimsMock->shouldReceive('get')
-            ->once()
-            ->with('userId')
-            ->andReturn($fakeUserId = 'fake_user_id');
+        // no way to mock this stuff, there is no interface for this class, and it is a final, unomockable...
+        // the other way to mock this is with a mockery overload, but it is way terrible
+        $fakeClaimsMock = new Token\DataSet([
+            'userId' => 'fake_user_id'
+        ], '');
 
         $fakeTokenMock = \Mockery::mock(UnencryptedToken::class);
         $fakeTokenMock->shouldReceive('claims')
@@ -283,6 +282,6 @@ class JwtServiceTest extends UnitTestCase
             ->with($fakeToken = 'fake_token')
             ->andReturn($fakeTokenMock);
 
-        $this->assertEquals($fakeUserId, $service->getUserIdFromToken($fakeToken));
+        $this->assertEquals('fake_user_id', $service->getUserIdFromToken($fakeToken));
     }
 }

@@ -14,6 +14,13 @@ class AuthControllerTest extends TestCase
 {
     use RefreshDatabase, WithAuthTrait;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->refreshDatabase();
+    }
+
     /**
      * @test
      * @covers ::login
@@ -180,6 +187,8 @@ class AuthControllerTest extends TestCase
      */
     public function should_refresh_token_and_return_it_as_response(): void
     {
+        $this->refreshDatabase();
+
         $response = $this->postJson('/api/refresh', [
             'token' => $this->generateRefreshToken()
         ]);

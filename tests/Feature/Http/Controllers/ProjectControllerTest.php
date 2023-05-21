@@ -346,7 +346,7 @@ class ProjectControllerTest extends TestCase
     {
         $this->refreshDatabase();
 
-        $project = Project::factory()->create();
+        $project = Project::factory()->create(['status' => Status::CLOSED->value]);
         $project->status = Status::CLOSED->value;
 
         $response = $this->authAndPatch("/api/projects/{$project->id}/open");
