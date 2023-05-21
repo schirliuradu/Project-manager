@@ -90,7 +90,7 @@ class JwtService
      * @throws ExpiredJwtRefreshTokenException
      * @throws UnauthorizedUserException
      */
-    public function refreshAccessToken(string $refreshToken): string
+    public function refreshToken(string $refreshToken): string
     {
         // Parse and validate the refresh token
         try {

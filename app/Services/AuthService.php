@@ -80,6 +80,6 @@ class AuthService
      */
     public function refreshToken(RefreshTokenRequest $request): array
     {
-        return ['token' => $this->jwtService->refreshAccessToken($request->input('token'))];
+        return ['token' => $this->jwtService->refreshToken($request->input('token'))];
     }
 }

@@ -198,7 +198,7 @@ class AuthServiceTest extends UnitTestCase
             ->with('token')
             ->andReturn('fake_refresh_token');
 
-        $this->jwtServiceMock->shouldReceive('refreshAccessToken')
+        $this->jwtServiceMock->shouldReceive('refreshToken')
             ->once()
             ->andThrow(ExpiredJwtRefreshTokenException::class);
 
@@ -218,7 +218,7 @@ class AuthServiceTest extends UnitTestCase
             ->with('token')
             ->andReturn('fake_refresh_token');
 
-        $this->jwtServiceMock->shouldReceive('refreshAccessToken')
+        $this->jwtServiceMock->shouldReceive('refreshToken')
             ->once()
             ->andThrow(UnauthorizedUserException::class);
 
@@ -238,7 +238,7 @@ class AuthServiceTest extends UnitTestCase
             ->with('token')
             ->andReturn('fake_refresh_token');
 
-        $this->jwtServiceMock->shouldReceive('refreshAccessToken')
+        $this->jwtServiceMock->shouldReceive('refreshToken')
             ->once()
             ->andReturn($fakeAccessToken = 'fake_new_access_token');
 

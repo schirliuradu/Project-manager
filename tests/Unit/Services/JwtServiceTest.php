@@ -2,7 +2,9 @@
 
 namespace Tests\Unit\Services;
 
+use App\Exceptions\ExpiredJwtRefreshTokenException;
 use App\Exceptions\ExpiredJwtTokenException;
+use App\Exceptions\UnauthorizedUserException;
 use App\Services\JwtService;
 use DateTimeImmutable;
 use Lcobucci\JWT\Builder;
@@ -154,5 +156,109 @@ class JwtServiceTest extends UnitTestCase
         $this->validatorMock->shouldReceive('assert')->once();
 
         $this->service->parseAndValidateToken('test.bearer.token');
+    }
+
+    /**
+     * @test
+     * @covers ::refreshToken
+     */
+    public function refresh_access_token_should_throw_custom_exception_if_given_refresh_token_is_expired(): void
+    {
+        $service = \Mockery::mock(JwtService::class, [
+            $this->algorithmMock,
+            $this->signingKeyMock,
+            $this->builderMock,
+            $this->parserMock,
+            $this->datetimeMock,
+            $this->validatorMock
+        ])->makePartial();
+
+        $service->shouldReceive('parseAndValidateToken')
+            ->once()
+            ->with($fakeRefreshToken = 'fake_refresh_token')
+            ->andThrow(ExpiredJwtTokenException::class);
+
+        $this->expectException(ExpiredJwtRefreshTokenException::class);
+        $service->refreshToken($fakeRefreshToken);
+    }
+
+    /**
+     * @test
+     * @covers ::refreshToken
+     */
+    public function refresh_access_token_should_throw_custom_exception_if_given_refresh_token_validation_fails(): void
+    {
+        $service = \Mockery::mock(JwtService::class, [
+            $this->algorithmMock,
+            $this->signingKeyMock,
+            $this->builderMock,
+            $this->parserMock,
+            $this->datetimeMock,
+            $this->validatorMock
+        ])->makePartial();
+
+        $service->shouldReceive('parseAndValidateToken')
+            ->once()
+            ->with($fakeRefreshToken = 'fake_refresh_token')
+            ->andThrow(\Exception::class);
+
+        $this->expectException(UnauthorizedUserException::class);
+        $service->refreshToken($fakeRefreshToken);
+    }
+
+    /**
+     * @test
+     * @covers ::refreshToken
+     */
+    public function refresh_access_token_should_generate_and_return_new_access_token_as_string(): void
+    {
+        $fakeRefreshToken = 'fake_refresh_token';
+
+        $fakeTokenMock = \Mockery::mock(UnencryptedToken::class);
+        $fakeTokenMock->shouldReceive('isExpired')
+            ->once()
+            ->with($this->datetimeMock)
+            ->andReturnFalse();
+
+        // very, very, terribly ugly mockery overload because of final class with no interface ...
+        $fakeClaimsMock = \Mockery::mock('alias:Lcobucci\JWT\Token\DataSet');
+        $fakeClaimsMock->shouldReceive('get')
+            ->once()
+            ->with('userId')
+            ->andReturn('fake_user_id');
+
+        $fakeTokenMock->shouldReceive('claims')
+            ->once()
+            ->andReturn($fakeClaimsMock);
+
+        $this->parserMock->shouldReceive('parse')
+            ->once()
+            ->with($fakeRefreshToken)
+            ->andReturn($fakeTokenMock);
+
+        $this->validatorMock->shouldReceive('assert')
+            ->once();
+
+        $this->datetimeMock->shouldReceive('modify')
+            ->once()
+            ->with('+1 day')
+            ->andReturnSelf();
+
+        $fakeAccessTokenMock = \Mockery::mock(UnencryptedToken::class);
+        $fakeAccessTokenMock->shouldReceive('toString')
+            ->once()
+            ->andReturn('fake_access_token');
+
+        $this->builderMock->shouldReceive('issuedBy')->once()->andReturnSelf();
+        $this->builderMock->shouldReceive('permittedFor')->once()->andReturnSelf();
+        $this->builderMock->shouldReceive('issuedAt')->once()->andReturnSelf();
+        $this->builderMock->shouldReceive('expiresAt')->once()->andReturnSelf();
+        $this->builderMock->shouldReceive('withClaim')->once()->andReturnSelf();
+        $this->builderMock->shouldReceive('getToken')
+            ->once()
+            ->with($this->algorithmMock, $this->signingKeyMock)
+            ->andReturns($fakeAccessTokenMock);
+
+        $this->service->refreshToken($fakeRefreshToken);
     }
 }
