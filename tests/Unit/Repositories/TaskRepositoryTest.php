@@ -8,6 +8,7 @@ use App\Helpers\Formatters\PaginationFormatter;
 use App\Http\Requests\AddTaskToProjectRequest;
 use App\Http\Requests\GetProjectTasksRequest;
 use App\Http\Requests\UpdateProjectTaskRequest;
+use App\Models\Enums\DeletionType;
 use App\Models\Enums\Difficulty;
 use App\Models\Enums\Priority;
 use App\Models\Enums\Status;
@@ -301,6 +302,121 @@ class TaskRepositoryTest extends UnitTestCase
             ->andReturnSelf();
 
         $this->assertEquals($fakeTaskMock, $this->repo->closeTask($fakeTaskMock));
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProjectTask
+     */
+    public function delete_project_task_should_bubble_up_custom_exceptions()
+    {
+        $repo = \Mockery::mock(TaskRepository::class, [
+            $this->modelMock,
+            $this->paginationFormatterMock,
+            $this->taskFactoryMock,
+            $this->builderFactoryMock
+        ])->makePartial();
+
+        $repo->shouldReceive('findWithTrashed')
+            ->once()
+            ->with($fakeProjectId = 'fake_task_uuid')
+            ->andThrow(TaskNotFoundException::class);
+
+        $this->expectException(TaskNotFoundException::class);
+        $repo->deleteProjectTask($fakeProjectId, DeletionType::SOFT->value);
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProjectTask
+     */
+    public function delete_project_should_soft_delete_task()
+    {
+        $repo = \Mockery::mock(TaskRepository::class, [
+            $this->modelMock,
+            $this->paginationFormatterMock,
+            $this->taskFactoryMock,
+            $this->builderFactoryMock
+        ])->makePartial();
+
+        $fakeTaskMock = \Mockery::mock(Task::class);
+        $fakeTaskMock->shouldReceive('delete')
+            ->once();
+        $fakeTaskMock->shouldReceive('forceDelete')
+            ->never();
+
+        $repo->shouldReceive('findWithTrashed')
+            ->once()
+            ->with($fakeTaskId = 'fake_task_uuid')
+            ->andReturn($fakeTaskMock);
+
+        $repo->deleteProjectTask($fakeTaskId, DeletionType::SOFT->value);
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProjectTask
+     */
+    public function delete_project_should_hard_delete_task()
+    {
+        $repo = \Mockery::mock(TaskRepository::class, [
+            $this->modelMock,
+            $this->paginationFormatterMock,
+            $this->taskFactoryMock,
+            $this->builderFactoryMock
+        ])->makePartial();
+
+        $fakeTaskMock = \Mockery::mock(Task::class);
+        $fakeTaskMock->shouldReceive('forceDelete')
+            ->once();
+        $fakeTaskMock->shouldReceive('delete')
+            ->never();
+
+        $repo->shouldReceive('findWithTrashed')
+            ->once()
+            ->with($fakeTaskId = 'fake_task_uuid')
+            ->andReturn($fakeTaskMock);
+
+        $repo->deleteProjectTask($fakeTaskId, DeletionType::HARD->value);
+    }
+
+    /**
+     * @test
+     * @covers ::findWithTrashed
+     */
+    public function find_with_trashed_should_throw_custom_exception_if_task_not_found_for_given_id(): void
+    {
+        $queryMock = \Mockery::mock(Builder::class);
+        $queryMock->shouldReceive('find')
+            ->once()
+            ->with($fakeTaskId = 'fake_task_uuid')
+            ->andThrow(TaskNotFoundException::class);
+
+        $this->modelMock->shouldReceive('newQueryWithoutScopes')
+            ->once()
+            ->andReturn($queryMock);
+
+        $this->expectException(TaskNotFoundException::class);
+        $this->repo->findWithTrashed($fakeTaskId);
+    }
+
+    /**
+     * @test
+     * @covers ::findWithTrashed
+     */
+    public function find_with_trashed_should_return_task_instance_when_found(): void
+    {
+        $queryMock = \Mockery::mock(Builder::class);
+        $queryMock->shouldReceive('find')
+            ->once()
+            ->with($fakeTaskId = 'fake_task_uuid')
+            ->andReturn(\Mockery::mock(Task::class));
+
+        $this->modelMock->shouldReceive('newQueryWithoutScopes')
+            ->once()
+            ->andReturn($queryMock);
+
+        $this->assertInstanceOf(Task::class, $this->repo->findWithTrashed($fakeTaskId));
     }
 
     /**

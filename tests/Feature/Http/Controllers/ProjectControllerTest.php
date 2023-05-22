@@ -395,6 +395,8 @@ class ProjectControllerTest extends TestCase
      */
     public function delete_project_should_soft_delete_a_project(): void
     {
+        $this->refreshDatabase();
+
         $project = Project::factory()->create();
         $response = $this->authAndDelete("/api/projects/{$project->id}/soft");
         $response->assertNoContent();
@@ -411,6 +413,8 @@ class ProjectControllerTest extends TestCase
      */
     public function delete_project_should_hard_delete_a_project(): void
     {
+        $this->refreshDatabase();
+
         $project = Project::factory()->create();
         $response = $this->authAndDelete("/api/projects/{$project->id}/hard");
         $response->assertNoContent();

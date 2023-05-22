@@ -2,12 +2,14 @@
 
 namespace Tests\Feature\Http\Controllers;
 
+use App\Exceptions\TaskNotFoundException;
 use App\Models\Enums\Difficulty;
 use App\Models\Enums\Priority;
 use App\Models\Enums\Status;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use App\Repositories\TaskRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -383,5 +385,94 @@ class TaskControllerTest extends TestCase
 
         $this->assertEquals(Status::CLOSED->value, Task::find($task->id)->status);
         $response->assertNoContent();
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProjectTask
+     */
+    public function delete_project_task_should_return_unauthorized_if_no_bearer_was_passed(): void
+    {
+        $fakeUuid = Str::uuid();
+
+        $response = $this->delete("/api/projects/{$fakeUuid}/tasks/{$fakeUuid}/soft");
+
+        $response->assertUnauthorized();
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProjectTask
+     */
+    public function delete_project_task_should_return_bad_request_if_we_are_closing_task_which_belongs_to_closed_project(): void
+    {
+        $this->refreshDatabase();
+
+        User::factory()->create();
+        $project = Project::factory()->create(['status' => Status::CLOSED->value]);
+        $task = Task::factory()->create(['project_id' => $project->id->toString()]);
+
+        $response = $this->authAndDelete("/api/projects/{$project->id}/tasks/{$task->id}/soft");
+
+        $response->assertBadRequest();
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProjectTask
+     */
+    public function delete_project_task_should_throw_not_found_status_if_project_or_task_were_not_found_for_given_ids(): void
+    {
+        $this->refreshDatabase();
+
+        $project = Project::factory()->create(['status' => Status::OPEN->value]);
+        $fakeTaskId = Str::uuid();
+
+        $response = $this->authAndDelete("/api/projects/{$project->id}/tasks/{$fakeTaskId}/soft");
+
+        $response->assertNotFound();
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProjectTask
+     */
+    public function delete_project_task_should_soft_delete_task(): void
+    {
+        $this->refreshDatabase();
+
+        User::factory()->create();
+        $project = Project::factory()->create(['status' => Status::OPEN->value]);
+        $task = Task::factory()->create(['project_id' => $project->id->toString()]);
+
+        $response = $this->authAndDelete("/api/projects/{$project->id}/tasks/{$task->id}/soft");
+        $response->assertNoContent();
+
+        /** @var TaskRepository $taskRepository */
+        $taskRepository = $this->app->get(TaskRepository::class);
+        $softlyDeletedTask = $taskRepository->findWithTrashed($task->id);
+        $this->assertNotEmpty($softlyDeletedTask->getAttribute('deleted_at'));
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProjectTask
+     */
+    public function delete_project_task_should_hard_delete_task(): void
+    {
+        $this->refreshDatabase();
+
+        User::factory()->create();
+        $project = Project::factory()->create(['status' => Status::OPEN->value]);
+        $task = Task::factory()->create(['project_id' => $project->id->toString()]);
+
+        $response = $this->authAndDelete("/api/projects/{$project->id}/tasks/{$task->id}/hard");
+        $response->assertNoContent();
+
+        /** @var TaskRepository $taskRepository */
+        $taskRepository = $this->app->get(TaskRepository::class);
+
+        $this->expectException(TaskNotFoundException::class);
+        $taskRepository->findWithTrashed($task->id);
     }
 }

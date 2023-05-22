@@ -405,9 +405,6 @@
                     "204": {
                         "description": "No Content"
                     },
-                    "400": {
-                        "description": "Bad request."
-                    },
                     "401": {
                         "description": "Unauthorized."
                     },
@@ -671,6 +668,49 @@
                     },
                     {
                         "$ref": "#/components/parameters/taskStatusUpdateAction"
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad request."
+                    },
+                    "401": {
+                        "description": "Unauthorized."
+                    },
+                    "404": {
+                        "description": "Resource not found."
+                    },
+                    "422": {
+                        "description": "Unprocessable Content."
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/projects/{project}/tasks/{task}/{type}": {
+            "delete": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Deletes existing project task.",
+                "description": "Endpoint which deletes existing project task.",
+                "operationId": "deleteProjectTask",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/project"
+                    },
+                    {
+                        "$ref": "#/components/parameters/task"
+                    },
+                    {
+                        "$ref": "#/components/parameters/type"
                     }
                 ],
                 "responses": {

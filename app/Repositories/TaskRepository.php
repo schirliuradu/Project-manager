@@ -2,13 +2,16 @@
 
 namespace App\Repositories;
 
+use App\Exceptions\ProjectNotFoundException;
 use App\Exceptions\TaskNotFoundException;
 use App\Factories\SearchQueryBuilderFactory;
 use App\Helpers\Formatters\PaginationFormatter;
 use App\Http\Requests\AddTaskToProjectRequest;
 use App\Http\Requests\GetProjectTasksRequest;
 use App\Http\Requests\UpdateProjectTaskRequest;
+use App\Models\Enums\DeletionType;
 use App\Models\Enums\Status;
+use App\Models\Project;
 use App\Models\Task;
 use Database\Factories\TaskFactory;
 use Illuminate\Support\Str;
@@ -31,6 +34,26 @@ class TaskRepository
     ) {
     }
 
+
+    /**
+     * @param string $id
+     *
+     * @return Task|null
+     * @throws TaskNotFoundException
+     */
+    public function findWithTrashed(string $id): ?Task
+    {
+        /** @var Task $project */
+        $project = $this->task
+            ->newQueryWithoutScopes()
+            ->find($id);
+
+        if (!$project) {
+            throw new TaskNotFoundException();
+        }
+
+        return $project;
+    }
 
     /**
      * @param string $projectId
@@ -178,5 +201,21 @@ class TaskRepository
         $task->save();
 
         return $task;
+    }
+
+    /**
+     * @param string $task
+     * @param string $type
+     *
+     * @return void
+     * @throws TaskNotFoundException
+     */
+    public function deleteProjectTask(string $task, string $type): void
+    {
+        $task = $this->findWithTrashed($task);
+
+        $type === DeletionType::SOFT->value
+            ? $task->delete()
+            : $task->forceDelete();
     }
 }

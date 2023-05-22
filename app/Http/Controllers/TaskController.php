@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exceptions\ProjectNotFoundException;
 use App\Exceptions\TaskNotFoundException;
 use App\Http\Requests\AddTaskToProjectRequest;
+use App\Http\Requests\DeleteProjectTaskRequest;
 use App\Http\Requests\GetProjectTaskRequest;
 use App\Http\Requests\GetProjectTasksRequest;
 use App\Http\Requests\UpdateProjectTaskRequest;
@@ -243,6 +244,49 @@ class TaskController extends Controller
         string $action
     ): Response {
         $this->service->updateProjectTaskStatus($project, $task, $action);
+
+        return response()->noContent();
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/projects/{project}/tasks/{task}/{type}",
+     *     operationId="deleteProjectTask",
+     *     tags={"Tasks"},
+     *     summary="Deletes existing project task.",
+     *     description="Endpoint which deletes existing project task.",
+     *     security={{"bearerAuth": {}}},
+     *
+     *     @OA\Parameter(ref="#/components/parameters/project"),
+     *     @OA\Parameter(ref="#/components/parameters/task"),
+     *     @OA\Parameter(ref="#/components/parameters/type"),
+     *
+     *     @OA\Response(
+     *         response="204",
+     *         description="No Content"
+     *     ),
+     *     @OA\Response(response="400", description="Bad request."),
+     *     @OA\Response(response="401", description="Unauthorized."),
+     *     @OA\Response(response="404", description="Resource not found."),
+     *     @OA\Response(response="422", description="Unprocessable Content.")
+     * )
+     *
+     * @param DeleteProjectTaskRequest $request
+     * @param string $project
+     * @param string $task
+     * @param string $type
+     *
+     * @return Response
+     * @throws ProjectNotFoundException
+     * @throws TaskNotFoundException
+     */
+    public function deleteProjectTask(
+        DeleteprojectTaskRequest $request,
+        string $project,
+        string $task,
+        string $type
+    ): Response {
+        $this->service->deleteProjectTask($project, $task, $type);
 
         return response()->noContent();
     }

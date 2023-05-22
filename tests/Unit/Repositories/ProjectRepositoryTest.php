@@ -395,7 +395,7 @@ class ProjectRepositoryTest extends UnitTestCase
      * @test
      * @covers ::findWithTrashed
      */
-    public function find_with_trashed_should_return(): void
+    public function find_with_trashed_should_return_project_instance_when_found(): void
     {
         $queryMock = \Mockery::mock(Builder::class);
         $queryMock->shouldReceive('find')

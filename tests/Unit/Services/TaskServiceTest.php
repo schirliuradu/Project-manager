@@ -5,9 +5,11 @@ namespace Tests\Unit\Services;
 use App\Exceptions\ProjectNotFoundException;
 use App\Exceptions\TaskNotFoundException;
 use App\Http\Requests\AddTaskToProjectRequest;
+use App\Http\Requests\DeleteProjectRequest;
 use App\Http\Requests\GetProjectTaskRequest;
 use App\Http\Requests\GetProjectTasksRequest;
 use App\Http\Requests\UpdateProjectTaskRequest;
+use App\Models\Enums\DeletionType;
 use App\Models\Enums\Status;
 use App\Models\Enums\StatusActions;
 use App\Models\Project;
@@ -473,6 +475,69 @@ class TaskServiceTest extends TestCase
             ->with($fakeTaskMock);
 
         $this->service->updateProjectTaskStatus($fakeProjectId, $fakeTaskId, $action);
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProjectTask
+     */
+    public function delete_project_task_should_throw_custom_exception_if_project_was_not_found_for_given_id(): void
+    {
+        $this->projectRepository->shouldReceive('find')
+            ->once()
+            ->with($fakeProjectId = 'fake_project_id')
+            ->andThrow(ProjectNotFoundException::class);
+
+        $this->expectException(ProjectNotFoundException::class);
+
+        $this->service->deleteProjectTask($fakeProjectId, 'fake_task_uuid', DeletionType::SOFT->value);
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProjectTask
+     */
+    public function delete_project_task_should_throw_bad_request_exception_if_try_to_work_on_closed_project(): void
+    {
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeProjectMock->shouldReceive('getAttribute')
+            ->once()
+            ->with('status')
+            ->andReturn(Status::CLOSED->value);
+
+        $this->projectRepository->shouldReceive('find')
+            ->once()
+            ->with($fakeProjectId = 'fake_project_id')
+            ->andReturn($fakeProjectMock);
+
+        $this->expectException(HttpException::class);
+        $this->expectExceptionMessage('Bad Request');
+
+        $this->service->deleteProjectTask($fakeProjectId, 'fake_task_uuid', DeletionType::SOFT->value);
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProjectTask
+     */
+    public function delete_project_task_should_correctly_delete_task(): void
+    {
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeProjectMock->shouldReceive('getAttribute')
+            ->once()
+            ->with('status')
+            ->andReturn(Status::OPEN->value);
+
+        $this->projectRepository->shouldReceive('find')
+            ->once()
+            ->with($fakeProjectId = 'fake_project_id')
+            ->andReturn($fakeProjectMock);
+
+        $this->taskRepository->shouldReceive('deleteProjectTask')
+            ->once()
+            ->with($fakeTaskId = 'fake_task_uuid', $status = DeletionType::SOFT->value);
+
+        $this->service->deleteProjectTask($fakeProjectId, $fakeTaskId, $status);
     }
 
     /**

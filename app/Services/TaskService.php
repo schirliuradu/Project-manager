@@ -161,9 +161,28 @@ class TaskService
     }
 
     /**
-     * Helper method.
+     * @param string $project
+     * @param string $task
+     * @param string $type
      *
      * @return void
+     * @throws TaskNotFoundException|ProjectNotFoundException|HttpException
+     */
+    public function deleteProjectTask(string $project, string $task, string $type): void
+    {
+        $project = $this->projectRepo->find($project);
+
+        // if project is closed we can't do stuff on it
+        if ($project->getAttribute('status') === Status::CLOSED->value) {
+            $this->badRequestException();
+        }
+
+        $this->repo->deleteProjectTask($task, $type);
+    }
+
+    /**
+     * @return void
+     * @throws HttpException
      */
     private function badRequestException(): void
     {

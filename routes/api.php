@@ -40,6 +40,7 @@ Route::group([
     Route::get('/projects/{project}/tasks/{task}', [TaskController::class, 'getProjectTask']);
     Route::patch('/projects/{project}/tasks/{task}', [TaskController::class, 'updateProjectTask']);
     Route::patch('/projects/{project}/tasks/{task}/{action}', [TaskController::class, 'updateProjectTaskStatus']);
+    Route::delete('/projects/{project}/tasks/{task}/{type}', [TaskController::class, 'deleteProjectTask']);
 
     // user routes
     Route::patch('/users/{user}', [UserController::class, 'updateUser']);

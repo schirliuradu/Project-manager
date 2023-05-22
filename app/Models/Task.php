@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\NotDeletedScope;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @OA\Schema(
@@ -25,6 +27,7 @@ class Task extends Model
 {
     use HasFactory;
     use HasUuids;
+    use SoftDeletes;
 
     /**
      * The primary key for the model.
@@ -46,9 +49,20 @@ class Task extends Model
     protected $hidden = [
         'created_at',
         'updated_at',
+        'deleted_at',
         'assignee_id',
         'project_id',
     ];
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::addGlobalScope(new NotDeletedScope());
+    }
 
     /**
      * Get project assignee.
