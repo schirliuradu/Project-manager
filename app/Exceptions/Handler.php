@@ -2,11 +2,11 @@
 
 namespace App\Exceptions;
 
-use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -41,12 +41,17 @@ class Handler extends ExceptionHandler
      */
     public function render($request, Throwable $e): \Illuminate\Http\Response|JsonResponse|Response
     {
+        // catch query exceptions and map them in a custom message with 500 status code
+        if ($e instanceof \PDOException) {
+            throw new GenericErrorException();
+        }
+
+        if ($e instanceof NotFoundHttpException) {
+            return response()->json(['message' => 'Not Found'], 404);
+        }
+
         if ($e instanceof HttpException) {
             return response()->json(['error' => $e->getMessage()], $e->getStatusCode());
-        }
-        // catch query exceptions and map them in a custom message with 500 status code
-        if ($e instanceof QueryException) {
-            throw new GenericErrorException();
         }
 
         return parent::render($request, $e);

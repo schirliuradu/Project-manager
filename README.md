@@ -31,6 +31,12 @@ docker exec -it project-manager bash
 ```php
   php artisan migrate --seed
 ```
+
+- [ ] Generate application key:
+
+```php
+  php artisan key:generate
+```
 ---
 
 For testing purposes use the swagger api documentation: you can reach it on this url: `http://localhost/api/documentation`
