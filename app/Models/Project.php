@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use App\Models\Enums\Status;
+use App\Models\Scopes\NotDeletedScope;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @OA\Schema(
@@ -49,6 +52,7 @@ class Project extends Model
 {
     use HasFactory;
     use HasUuids;
+    use SoftDeletes;
 
     /**
      * The primary key for the model.
@@ -71,6 +75,26 @@ class Project extends Model
         'created_at',
         'updated_at',
     ];
+
+    /**
+     * Boot the model.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::addGlobalScope(new NotDeletedScope());
+    }
+
+    /**
+     * Get the original query builder for a model instance.
+     *
+     * @return Builder
+     */
+    public function newQueryWithoutScopes(): Builder
+    {
+        return parent::newQueryWithoutScopes()->withoutGlobalScope('notDeleted');
+    }
 
     /**
      * Get the tasks for the project.

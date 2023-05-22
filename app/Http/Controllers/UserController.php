@@ -8,6 +8,12 @@ use App\Http\Requests\UpdateUserRequest;
 use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * @OA\Tag(
+ *     name="Users",
+ *     description="API Endpoints for Users"
+ * )
+ */
 class UserController extends Controller
 {
     /**

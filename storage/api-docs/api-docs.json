@@ -385,6 +385,46 @@
                 ]
             }
         },
+        "/api/projects/{project}/{type}": {
+            "delete": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Deletes existing project.",
+                "description": "Endpoint which deletes existing project.",
+                "operationId": "deleteProject",
+                "parameters": [
+                    {
+                        "$ref": "#/components/parameters/project"
+                    },
+                    {
+                        "$ref": "#/components/parameters/type"
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
+                    "400": {
+                        "description": "Bad request."
+                    },
+                    "401": {
+                        "description": "Unauthorized."
+                    },
+                    "404": {
+                        "description": "Resource not found."
+                    },
+                    "422": {
+                        "description": "Unprocessable Content."
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
         "/api/projects/{project}/tasks": {
             "get": {
                 "tags": [
@@ -883,6 +923,14 @@
                 },
                 "type": "object"
             },
+            "DeletionTypeEnum": {
+                "description": "Deletion type.",
+                "type": "string",
+                "enum": [
+                    "soft",
+                    "hard"
+                ]
+            },
             "DifficultyEnum": {
                 "description": "Task difficulty..",
                 "type": "string",
@@ -1021,6 +1069,15 @@
             }
         },
         "parameters": {
+            "type": {
+                "name": "type",
+                "in": "path",
+                "description": "Deletion type.",
+                "required": true,
+                "schema": {
+                    "$ref": "#/components/schemas/DeletionTypeEnum"
+                }
+            },
             "project": {
                 "name": "project",
                 "in": "path",
@@ -1145,8 +1202,20 @@
     },
     "tags": [
         {
+            "name": "Auth",
+            "description": "API Endpoints for Authentication"
+        },
+        {
             "name": "Projects",
-            "description": "API Endpoints of Projects"
+            "description": "API Endpoints for Projects"
+        },
+        {
+            "name": "Tasks",
+            "description": "API Endpoints for Tasks"
+        },
+        {
+            "name": "Users",
+            "description": "API Endpoints for Users"
         }
     ]
 }

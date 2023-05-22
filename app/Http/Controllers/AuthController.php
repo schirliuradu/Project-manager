@@ -12,6 +12,12 @@ use App\Http\Requests\RegisterRequest;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
 
+/**
+ * @OA\Tag(
+ *     name="Auth",
+ *     description="API Endpoints for Authentication"
+ * )
+ */
 class AuthController extends Controller
 {
     /**

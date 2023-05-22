@@ -8,8 +8,10 @@ use App\Helpers\Formatters\PaginationFormatter;
 use App\Http\Requests\AddProjectRequest;
 use App\Http\Requests\GetProjectsRequest;
 use App\Http\Requests\UpdateProjectRequest;
+use App\Models\Enums\DeletionType;
 use App\Models\Enums\Status;
 use App\Models\Project;
+use App\Models\Scopes\NotDeletedScope;
 use Database\Factories\ProjectFactory;
 use Illuminate\Support\Str;
 
@@ -42,10 +44,31 @@ class ProjectRepository
      */
     public function find(string $id): ?Project
     {
+        /** @var Project $project */
         $project = $this->project
             ->query()
             ->where('id', '=', $id)
             ->first();
+
+        if (!$project) {
+            throw new ProjectNotFoundException();
+        }
+
+        return $project;
+    }
+
+    /**
+     * @param string $id
+     *
+     * @return Project|null
+     * @throws ProjectNotFoundException
+     */
+    public function findWithTrashed(string $id): ?Project
+    {
+        /** @var Project $project */
+        $project = $this->project
+            ->newQueryWithoutScopes()
+            ->find($id);
 
         if (!$project) {
             throw new ProjectNotFoundException();
@@ -160,5 +183,21 @@ class ProjectRepository
         $project->save();
 
         return $project;
+    }
+
+    /**
+     * @param string $id
+     * @param string $type
+     *
+     * @return void
+     * @throws ProjectNotFoundException
+     */
+    public function deleteProject(string $id, string $type): void
+    {
+        $project = $this->findWithTrashed($id);
+
+        $type === DeletionType::SOFT->value
+            ? $project->delete()
+            : $project->forceDelete();
     }
 }

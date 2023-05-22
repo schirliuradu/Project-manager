@@ -112,4 +112,16 @@ class ProjectService
             $this->repo->closeProject($project);
         }
     }
+
+    /**
+     * @param string $id
+     * @param string $type
+     *
+     * @return void
+     * @throws ProjectNotFoundException
+     */
+    public function deleteProject(string $id, string $type): void
+    {
+        $this->repo->deleteProject($id, $type);
+    }
 }

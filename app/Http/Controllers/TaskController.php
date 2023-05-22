@@ -13,6 +13,12 @@ use App\Services\TaskService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
+/**
+ * @OA\Tag(
+ *     name="Tasks",
+ *     description="API Endpoints for Tasks"
+ * )
+ */
 class TaskController extends Controller
 {
     /**

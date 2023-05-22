@@ -95,4 +95,18 @@ trait WithAuthTrait
             'Authorization' => 'Bearer ' . $this->bearer(),
         ])->patch($endpoint, $data);
     }
+
+    /**
+     * @param string $endpoint
+     *
+     * @return TestResponse
+     * @throws ContainerExceptionInterface
+     * @throws NotFoundExceptionInterface
+     */
+    private function authAndDelete(string $endpoint): TestResponse
+    {
+        return $this->withHeaders([
+            'Authorization' => 'Bearer ' . $this->bearer(),
+        ])->delete($endpoint);
+    }
 }

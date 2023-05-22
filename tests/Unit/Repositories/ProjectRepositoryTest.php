@@ -8,6 +8,7 @@ use App\Helpers\Formatters\PaginationFormatter;
 use App\Http\Requests\AddProjectRequest;
 use App\Http\Requests\GetProjectsRequest;
 use App\Http\Requests\UpdateProjectRequest;
+use App\Models\Enums\DeletionType;
 use App\Models\Enums\Status;
 use App\Models\Project;
 use App\Repositories\Builders\SearchQueryBuilder;
@@ -16,6 +17,7 @@ use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Mockery\Mock;
 use Tests\Unit\UnitTestCase;
 
 /**
@@ -291,5 +293,120 @@ class ProjectRepositoryTest extends UnitTestCase
             ->andReturn($openedTasksMock);
 
         $this->assertTrue($this->repo->hasOpenedTasks($fakeProjectMock));
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProject
+     */
+    public function delete_project_should_bubble_up_custom_exceptions()
+    {
+        $repo = \Mockery::mock(ProjectRepository::class, [
+            $this->modelMock,
+            $this->paginationFormatterMock,
+            $this->projectFactoryMock,
+            $this->builderFactoryMock
+        ])->makePartial();
+
+        $repo->shouldReceive('findWithTrashed')
+            ->once()
+            ->with($fakeProjectId = 'fake_project_uuid')
+            ->andThrow(ProjectNotFoundException::class);
+
+        $this->expectException(ProjectNotFoundException::class);
+        $repo->deleteProject($fakeProjectId, DeletionType::SOFT->value);
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProject
+     */
+    public function delete_project_should_soft_delete_project()
+    {
+        $repo = \Mockery::mock(ProjectRepository::class, [
+            $this->modelMock,
+            $this->paginationFormatterMock,
+            $this->projectFactoryMock,
+            $this->builderFactoryMock
+        ])->makePartial();
+
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeProjectMock->shouldReceive('delete')
+            ->once();
+        $fakeProjectMock->shouldReceive('forceDelete')
+            ->never();
+
+        $repo->shouldReceive('findWithTrashed')
+            ->once()
+            ->with($fakeProjectId = 'fake_project_uuid')
+            ->andReturn($fakeProjectMock);
+
+        $repo->deleteProject($fakeProjectId, DeletionType::SOFT->value);
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProject
+     */
+    public function delete_project_should_hard_delete_project()
+    {
+        $repo = \Mockery::mock(ProjectRepository::class, [
+            $this->modelMock,
+            $this->paginationFormatterMock,
+            $this->projectFactoryMock,
+            $this->builderFactoryMock
+        ])->makePartial();
+
+        $fakeProjectMock = \Mockery::mock(Project::class);
+        $fakeProjectMock->shouldReceive('forceDelete')
+            ->once();
+        $fakeProjectMock->shouldReceive('delete')
+            ->never();
+
+        $repo->shouldReceive('findWithTrashed')
+            ->once()
+            ->with($fakeProjectId = 'fake_project_uuid')
+            ->andReturn($fakeProjectMock);
+
+        $repo->deleteProject($fakeProjectId, DeletionType::HARD->value);
+    }
+
+    /**
+     * @test
+     * @covers ::findWithTrashed
+     */
+    public function find_with_trashed_should_throw_custom_exception_if_project_not_found_for_given_id(): void
+    {
+        $queryMock = \Mockery::mock(Builder::class);
+        $queryMock->shouldReceive('find')
+            ->once()
+            ->with($fakeProjectId = 'fake_project_uuid')
+            ->andThrow(ProjectNotFoundException::class);
+
+        $this->modelMock->shouldReceive('newQueryWithoutScopes')
+            ->once()
+            ->andReturn($queryMock);
+
+        $this->expectException(ProjectNotFoundException::class);
+        $this->repo->findWithTrashed($fakeProjectId);
+    }
+
+    /**
+     * @test
+     * @covers ::findWithTrashed
+     */
+    public function find_with_trashed_should_return(): void
+    {
+        $queryMock = \Mockery::mock(Builder::class);
+        $queryMock->shouldReceive('find')
+            ->once()
+            ->with($fakeProjectId = 'fake_project_uuid')
+            ->andReturn(\Mockery::mock(Project::class));
+
+        $this->modelMock->shouldReceive('newQueryWithoutScopes')
+            ->once()
+            ->andReturn($queryMock);
+
+        $this->assertInstanceOf(Project::class, $this->repo->findWithTrashed($fakeProjectId));
     }
 }

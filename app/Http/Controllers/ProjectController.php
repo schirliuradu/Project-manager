@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\ProjectNotFoundException;
 use App\Http\Requests\AddProjectRequest;
+use App\Http\Requests\DeleteProjectRequest;
 use App\Http\Requests\GetProjectRequest;
 use App\Http\Requests\GetProjectsRequest;
 use App\Http\Requests\UpdateProjectRequest;
@@ -12,6 +13,12 @@ use App\Services\ProjectService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Response;
 
+/**
+ * @OA\Tag(
+ *     name="Projects",
+ *     description="API Endpoints for Projects"
+ * )
+ */
 class ProjectController extends Controller
 {
     /**
@@ -216,6 +223,41 @@ class ProjectController extends Controller
     public function updateProjectStatus(UpdateProjectStatusRequest $request, string $project, string $status): Response
     {
         $this->service->updateProjectStatus($project, $status);
+
+        return response()->noContent();
+    }
+
+    /**
+     * @OA\Delete(
+     *     path="/api/projects/{project}/{type}",
+     *     operationId="deleteProject",
+     *     tags={"Projects"},
+     *     summary="Deletes existing project.",
+     *     description="Endpoint which deletes existing project.",
+     *     security={{"bearerAuth": {}}},
+     *
+     *     @OA\Parameter(ref="#/components/parameters/project"),
+     *     @OA\Parameter(ref="#/components/parameters/type"),
+     *
+     *     @OA\Response(
+     *         response="204",
+     *         description="No Content"
+     *     ),
+     *     @OA\Response(response="401", description="Unauthorized."),
+     *     @OA\Response(response="404", description="Resource not found."),
+     *     @OA\Response(response="422", description="Unprocessable Content.")
+     * )
+     *
+     * @param DeleteProjectRequest $request
+     * @param string $id
+     * @param string $type
+     *
+     * @return Response
+     * @throws ProjectNotFoundException
+     */
+    public function deleteProject(DeleteProjectRequest $request, string $id, string $type): Response
+    {
+        $this->service->deleteProject($id, $type);
 
         return response()->noContent();
     }

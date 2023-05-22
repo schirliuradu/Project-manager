@@ -262,4 +262,17 @@ class ProjectServiceTest extends UnitTestCase
 
         $this->service->updateProjectStatus('fake_uuid', Status::CLOSED->value);
     }
+
+    /**
+     * @test
+     * @covers ::deleteProject
+     */
+    public function delete_project_status_should_delete_project_correctly()
+    {
+        $this->projectRepositoryMock->shouldReceive('deleteProject')
+            ->once()
+            ->with($fakeProjectId = 'fake_project_uuid', $type = 'soft');
+
+        $this->service->deleteProject($fakeProjectId, $type);
+    }
 }

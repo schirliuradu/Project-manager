@@ -2,8 +2,10 @@
 
 namespace Tests\Feature\Http\Controllers;
 
+use App\Exceptions\ProjectNotFoundException;
 use App\Models\Enums\Status;
 use App\Models\Project;
+use App\Repositories\ProjectRepository;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Str;
 use Tests\TestCase;
@@ -36,10 +38,8 @@ class ProjectControllerTest extends TestCase
     {
         // Make a GET request to the '/api/projects' endpoint with bearer
         $response = $this->authAndGet('/api/projects');
-        $arrayResponse = $response->json();
 
-        $this->assertArrayHasKey('errors', $arrayResponse);
-        $this->assertEquals(['page', 'perPage', 'sortBy'], array_keys($arrayResponse['errors']));
+        $response->assertJsonValidationErrors(['page', 'perPage', 'sortBy']);
 
         // Assert the response status code is 422
         $response->assertStatus(422);
@@ -97,10 +97,8 @@ class ProjectControllerTest extends TestCase
     {
         // Make a GET request to the '/api/projects' endpoint with bearer
         $response = $this->authAndGet('/api/projects/fake_uuid');
-        $arrayResponse = $response->json();
 
-        $this->assertArrayHasKey('errors', $arrayResponse);
-        $this->assertEquals(['project'], array_keys($arrayResponse['errors']));
+        $response->assertJsonValidationErrorFor('project');
 
         // Assert the response status code is 422
         $response->assertStatus(422);
@@ -169,10 +167,8 @@ class ProjectControllerTest extends TestCase
     {
         // Make a GET request to the '/api/projects' endpoint with bearer
         $response = $this->authAndPost('/api/projects', []);
-        $arrayResponse = $response->json();
 
-        $this->assertArrayHasKey('errors', $arrayResponse);
-        $this->assertEquals(['title', 'description'], array_keys($arrayResponse['errors']));
+        $response->assertJsonValidationErrors(['title', 'description']);
 
         // Assert the response status code is 422
         $response->assertStatus(422);
@@ -245,9 +241,7 @@ class ProjectControllerTest extends TestCase
         $responseWrongParams = $this->authAndPatch("/api/projects/{$project->id}", []);
         $responseWrongParams->assertStatus(422);
 
-        $arrayResponse = $responseWrongParams->json();
-        $this->assertArrayHasKey('errors', $arrayResponse);
-        $this->assertEquals(['title', 'description'], array_keys($arrayResponse['errors']));
+        $responseWrongParams->assertJsonValidationErrors(['title', 'description']);
     }
 
     /**
@@ -352,5 +346,79 @@ class ProjectControllerTest extends TestCase
         $response = $this->authAndPatch("/api/projects/{$project->id}/open");
 
         $response->assertBadRequest();
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProject
+     */
+    public function delete_project_should_return_unauthorized_if_no_bearer_was_passed(): void
+    {
+        $fakeProjectId = Str::uuid();
+
+        $response = $this->delete("/api/projects/{$fakeProjectId}/soft");
+
+        // Assert that the request is unauthorized (401 status code)
+        $response->assertUnauthorized();
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProject
+     */
+    public function delete_project_should_return_input_validation_error_if_input_is_not_ok(): void
+    {
+        $response = $this->authAndDelete("/api/projects/wrong_uuid/wrong_type");
+
+        $response->assertJsonValidationErrors(['project', 'type']);
+
+        // Assert the response status code is 422
+        $response->assertStatus(422);
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProject
+     */
+    public function delete_project_should_return_not_found_if_given_project_does_not_exist(): void
+    {
+        $fakeProjectId = Str::uuid();
+
+        $response = $this->authAndDelete("/api/projects/{$fakeProjectId}/soft");
+
+        $response->assertNotFound();
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProject
+     */
+    public function delete_project_should_soft_delete_a_project(): void
+    {
+        $project = Project::factory()->create();
+        $response = $this->authAndDelete("/api/projects/{$project->id}/soft");
+        $response->assertNoContent();
+
+        /** @var ProjectRepository $projectRepository */
+        $projectRepository = $this->app->get(ProjectRepository::class);
+        $softlyDeletedProject = $projectRepository->findWithTrashed($project->id);
+        $this->assertNotNull($softlyDeletedProject->getAttribute('deleted_at'));
+    }
+
+    /**
+     * @test
+     * @covers ::deleteProject
+     */
+    public function delete_project_should_hard_delete_a_project(): void
+    {
+        $project = Project::factory()->create();
+        $response = $this->authAndDelete("/api/projects/{$project->id}/hard");
+        $response->assertNoContent();
+
+        /** @var ProjectRepository $projectRepository */
+        $projectRepository = $this->app->get(ProjectRepository::class);
+
+        $this->expectException(ProjectNotFoundException::class);
+        $projectRepository->findWithTrashed($project->id);
     }
 }
